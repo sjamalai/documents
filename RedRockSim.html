@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McKinsey Solve: Redrock Study Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .data-table th { background-color: #1e293b; color: white; padding: 8px; text-align: left; font-size: 0.875rem; }
+        .data-table td { border-bottom: 1px solid #e5e7eb; padding: 8px; font-size: 0.875rem; }
+        .sidebar { background-color: #0f172a; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Header / HUD -->
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm z-10">
+        <div class="flex items-center space-x-4">
+            <div class="bg-blue-900 text-white px-3 py-1 rounded font-bold text-sm uppercase tracking-wider">Redrock Study</div>
+            <h1 id="task-title" class="text-gray-700 font-semibold">Phase 1: Ecosystem Analysis</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div class="text-sm font-medium text-gray-500">Time Remaining:</div>
+            <div id="timer" class="text-2xl font-mono font-bold text-red-600 w-24">35:00</div>
+            <button id="finish-btn" class="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded text-sm font-semibold transition">Submit Case</button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar w-64 text-slate-300 flex flex-col">
+            <div class="p-4 border-b border-slate-700">
+                <p class="text-xs uppercase font-bold text-slate-500 tracking-widest">Navigation</p>
+            </div>
+            <nav class="flex-1 overflow-y-auto" id="nav-links">
+                <!-- Links generated via JS -->
+            </nav>
+            <div class="p-4 bg-slate-800 text-xs italic">
+                Note: Decisions are final once the phase is submitted.
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <section class="flex-1 overflow-y-auto p-8 bg-gray-50 relative">
+            <div id="intro-screen" class="max-w-3xl mx-auto space-y-6">
+                <h2 class="text-3xl font-bold text-slate-900">Welcome to Redrock Crater</h2>
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 prose">
+                    <p>In this simulation, you are tasked with investigating the sudden decline of the <strong>Lesser Crested Fox</strong> population within the Redrock protected area.</p>
+                    <p>You have 35 minutes to analyze the provided data sets, identify correlations, and propose a conservation site that maximizes the species' survival probability based on environmental constraints.</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>Step 1:</strong> Examine species interaction and food web data.</li>
+                        <li><strong>Step 2:</strong> Analyze soil and water toxicity levels.</li>
+                        <li><strong>Step 3:</strong> Select the optimal site for the new Research & Breeding Facility.</li>
+                    </ul>
+                </div>
+                <button onclick="startSimulation()" class="w-full bg-blue-700 text-white py-4 rounded-xl font-bold hover:bg-blue-800 transition shadow-lg">Begin Investigation</button>
+            </div>
+
+            <div id="content-screen" class="hidden max-w-5xl mx-auto">
+                <div id="question-container" class="space-y-6">
+                    <!-- Questions injected here -->
+                </div>
+            </div>
+            
+            <div id="results-screen" class="hidden flex flex-col items-center justify-center h-full text-center space-y-4">
+                <h2 class="text-4xl font-bold text-slate-900">Simulation Complete</h2>
+                <p id="score-summary" class="text-xl text-gray-600"></p>
+                <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Restart Simulation</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let timeLeft = 35 * 60;
+        let timerInterval;
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+
+        const dataSets = {
+            "Population Trends": {
+                html: `
+                <div class='mb-4 bg-blue-50 p-4 border border-blue-200 rounded text-sm'>Observe the 5-year population trend across four quadrants.</div>
+                <table class='data-table w-full shadow-sm'>
+                    <thead><tr><th>Year</th><th>North</th><th>South</th><th>East</th><th>West</th></tr></thead>
+                    <tbody>
+                        <tr><td>2021</td><td>450</td><td>320</td><td>510</td><td>290</td></tr>
+                        <tr><td>2022</td><td>430</td><td>310</td><td>480</td><td>285</td></tr>
+                        <tr><td>2023</td><td>390</td><td>250</td><td>440</td><td>240</td></tr>
+                        <tr><td>2024</td><td>310</td><td>180</td><td>380</td><td>150</td></tr>
+                        <tr><td>2025</td><td>220</td><td>90</td><td>310</td><td>75</td></tr>
+                    </tbody>
+                </table>`
+            },
+            "Soil Toxicity": {
+                html: `
+                <div class='mb-4 bg-red-50 p-4 border border-red-200 rounded text-sm'>Heavy metal concentration detected in topsoil (mg/kg). Safe threshold: < 15 mg/kg.</div>
+                <table class='data-table w-full shadow-sm'>
+                    <thead><tr><th>Location</th><th>Lead (Pb)</th><th>Mercury (Hg)</th><th>Arsenic (As)</th></tr></thead>
+                    <tbody>
+                        <tr><td>Zone A (North)</td><td>12.5</td><td>2.1</td><td>8.4</td></tr>
+                        <tr><td>Zone B (South)</td><td>24.8</td><td>1.2</td><td>5.1</td></tr>
+                        <tr><td>Zone C (East)</td><td>9.2</td><td>0.8</td><td>4.2</td></tr>
+                        <tr><td>Zone D (West)</td><td>35.1</td><td>4.5</td><td>12.9</td></tr>
+                    </tbody>
+                </table>`
+            }
+        };
+
+        const questions = [
+            {
+                id: 0,
+                title: "Data Interpretation: Population",
+                text: "Based on the Population Trends table, which quadrant experienced the highest percentage decline between 2021 and 2025?",
+                options: ["North", "South", "East", "West"],
+                correct: 3, // West (290 to 75 is ~74% decline)
+                dataType: "Population Trends"
+            },
+            {
+                id: 1,
+                title: "Inference: Environmental Impact",
+                text: "Cross-referencing the Soil Toxicity and Population tables, which heavy metal appears to have the strongest correlation with the population crash in the West quadrant?",
+                options: ["Lead (Pb)", "Mercury (Hg)", "Arsenic (As)", "None of the above"],
+                correct: 1, // Mercury is significantly higher in West (4.5) compared to others
+                dataType: "Soil Toxicity"
+            },
+            {
+                id: 2,
+                title: "Decision Science: Site Selection",
+                text: "The breeding facility requires a Lead level below 15 mg/kg and a population count of at least 300 individuals in 2025. Which zone/quadrant is eligible?",
+                options: ["Zone A / North", "Zone B / South", "Zone C / East", "Zone D / West"],
+                correct: 2, // Zone C / East has Lead 9.2 and Pop 310
+                dataType: "Soil Toxicity"
+            },
+            {
+                id: 3,
+                title: "Resource Allocation",
+                text: "If each Lead decontamination unit covers 10 mg/kg reduction and costs $50,000, what is the minimum budget required to make Zone B safe (threshold < 15 mg/kg)?",
+                options: ["$50,000", "$100,000", "$150,000", "$200,000"],
+                correct: 0, // 24.8 - 10 = 14.8 (below 15). One unit is enough.
+                dataType: "Soil Toxicity"
+            }
+        ];
+
+        function startSimulation() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('content-screen').classList.remove('hidden');
+            initTimer();
+            renderSidebar();
+            renderQuestion(0);
+        }
+
+        function initTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                let mins = Math.floor(timeLeft / 60);
+                let secs = timeLeft % 60;
+                document.getElementById('timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                
+                if (timeLeft <= 300) {
+                    document.getElementById('timer').classList.add('animate-pulse');
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    finishCase();
+                }
+            }, 1000);
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('nav-links');
+            nav.innerHTML = questions.map((q, i) => `
+                <button onclick="renderQuestion(${i})" class="w-full text-left px-4 py-3 hover:bg-slate-800 border-l-4 ${currentQuestionIndex === i ? 'border-blue-500 bg-slate-800' : 'border-transparent'} transition">
+                    <span class="text-xs block text-slate-500 font-bold">TASK 0${i + 1}</span>
+                    <span class="text-sm">${q.title}</span>
+                </button>
+            `).join('');
+        }
+
+        function renderQuestion(index) {
+            currentQuestionIndex = index;
+            const q = questions[index];
+            const container = document.getElementById('question-container');
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                            <h3 class="text-lg font-bold mb-4 text-slate-800">Reference: ${q.dataType}</h3>
+                            ${dataSets[q.dataType].html}
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                            <h2 class="text-xl font-semibold mb-4">${q.text}</h2>
+                            <div class="space-y-3">
+                                ${q.options.map((opt, i) => `
+                                    <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition ${userAnswers[index] === i ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}">
+                                        <input type="radio" name="q-${index}" value="${i}" ${userAnswers[index] === i ? 'checked' : ''} onchange="saveAnswer(${index}, ${i})" class="w-4 h-4 text-blue-600">
+                                        <span class="ml-3 text-slate-700">${opt}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <button onclick="renderQuestion(${Math.max(0, index-1)})" class="px-6 py-2 bg-gray-200 rounded text-slate-700 font-medium ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}">Previous</button>
+                            ${index === questions.length - 1 
+                                ? `<button onclick="finishCase()" class="px-6 py-2 bg-green-600 text-white rounded font-bold">Complete Assessment</button>`
+                                : `<button onclick="renderQuestion(${index+1})" class="px-6 py-2 bg-blue-600 text-white rounded font-medium">Next Task</button>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+            renderSidebar();
+        }
+
+        function saveAnswer(qIndex, aIndex) {
+            userAnswers[qIndex] = aIndex;
+            renderQuestion(qIndex);
+        }
+
+        function finishCase() {
+            clearInterval(timerInterval);
+            let score = 0;
+            questions.forEach((q, i) => {
+                if (userAnswers[i] === q.correct) score++;
+            });
+
+            document.getElementById('content-screen').classList.add('hidden');
+            document.getElementById('task-title').innerText = "Results Summary";
+            const results = document.getElementById('results-screen');
+            results.classList.remove('hidden');
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('score-summary').innerHTML = `
+                Assessment Score: <span class="font-bold text-blue-600">${percentage}%</span><br/>
+                <span class="text-sm">You answered ${score} out of ${questions.length} critical data points correctly.</span>
+            `;
+        }
+
+        document.getElementById('finish-btn').addEventListener('click', () => {
+            if(confirm("Are you sure you want to submit your findings?")) {
+                finishCase();
+            }
+        });
+
+    </script>
+</body>
+</html>
+```eof
+
+I have generated the **Redrock Study Simulation**. This interactive tool features:
+*   **35-Minute Timer**: A real-time countdown to simulate the high-pressure environment of the McKinsey Solve game.
+*   **Data-Driven Case Study**: Focuses on population trends and environmental toxicity in a fictional crater ecosystem.
+*   **Multi-Step Analysis**: Tasks ranging from basic data interpretation to complex site-selection decisions using multiple variables.
+*   **Navigation Interface**: A professional dashboard that allows you to toggle between different data sets and questions.
+
+Good luck with your practice! Analyze the tables carefully, as the answers often require cross-referencing between the population and toxicity data.
