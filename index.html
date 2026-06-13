@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McKinsey Solve: Redrock Study Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Drag & Drop Visual Cues */
+        .draggable { cursor: grab; transition: all 0.2s; }
+        .draggable:active { cursor: grabbing; transform: scale(1.05); }
+        .dropzone-active { background-color: #1e293b !important; border-color: #3b82f6 !important; }
+        
+        /* Custom Scrollbar for Journal */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        
+        .data-table th { background-color: #f1f5f9; color: #334155; padding: 10px; text-align: left; font-size: 0.875rem; border-bottom: 2px solid #cbd5e1; }
+        .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px; font-size: 0.875rem; color: #475569;}
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm z-20">
+        <div class="flex items-center space-x-4">
+            <div class="bg-indigo-900 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-widest shadow-sm">Redrock Study</div>
+            <h1 class="text-slate-800 font-semibold text-lg">Phase 1: Ecosystem Diagnostics</h1>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div class="flex flex-col items-end">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Time Remaining</span>
+                <div id="timer" class="text-2xl font-mono font-bold text-slate-700 w-24 text-right">35:00</div>
+            </div>
+            <button id="finish-btn" onclick="finishCase()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md hidden">Submit Findings</button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        
+        <aside class="w-80 bg-slate-900 text-slate-200 flex flex-col shadow-xl z-10 border-r border-slate-800">
+            <div class="p-5 border-b border-slate-700 bg-slate-800/50">
+                <h2 class="text-sm uppercase font-bold text-indigo-400 tracking-widest mb-1 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    Investigation Journal
+                </h2>
+                <p class="text-xs text-slate-400">Drag critical data points here to build your case repository.</p>
+            </div>
+            
+            <div id="journal-dropzone" 
+                 class="flex-1 p-4 overflow-y-auto border-2 border-dashed border-slate-700 m-4 rounded-xl bg-slate-800/30 transition duration-200"
+                 ondrop="drop(event)" 
+                 ondragover="allowDrop(event)"
+                 ondragleave="dragLeave(event)">
+                
+                <div id="empty-journal-msg" class="h-full flex flex-col items-center justify-center text-slate-500 opacity-60 pointer-events-none">
+                    <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    <span class="text-sm font-medium">Drop data points here</span>
+                </div>
+
+                <ul id="journal-list" class="space-y-3 hidden">
+                    </ul>
+            </div>
+        </aside>
+
+        <section class="flex-1 overflow-y-auto p-8 relative">
+            <div class="max-w-4xl mx-auto space-y-8 pb-20">
+                
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Preliminary Field Report</h3>
+                    <p class="text-slate-600 leading-relaxed text-sm">
+                        Welcome to the Redrock conservation zone. Our primary concern is the sudden and severe population collapse of the native 
+                        <span class="draggable bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded border border-yellow-300 font-medium" draggable="true" ondragstart="drag(event)" data-info="Target Species: Lesser Crested Fox">Lesser Crested Fox</span>. 
+                        Initial surveys conducted between 
+                        <span class="draggable bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded border border-blue-300 font-medium" draggable="true" ondragstart="drag(event)" data-info="Observation Window: 2021 - 2025">2021 and 2025</span> 
+                        indicate drastic disparities across the four major quadrants of the crater. 
+                    </p>
+                    <p class="text-slate-600 leading-relaxed text-sm mt-3">
+                        Biologists hypothesize that heavy metal seepage from an abandoned mine is contaminating the topsoil. For our upcoming breeding facility to be viable, the safety thresholds are strict: 
+                        <span class="draggable bg-red-100 text-red-800 px-1.5 py-0.5 rounded border border-red-300 font-medium" draggable="true" ondragstart="drag(event)" data-info="Constraint: Lead (Pb) must be < 15 mg/kg">Lead (Pb) levels must remain below 15 mg/kg</span>, 
+                        and we have noticed severe behavioral anomalies when 
+                        <span class="draggable bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded border border-purple-300 font-medium" draggable="true" ondragstart="drag(event)" data-info="Risk Factor: Mercury (Hg) levels exceeding 4.0 mg/kg cause behavioral issues">Mercury (Hg) levels exceed 4.0 mg/kg</span>. 
+                        Review the data tables below to finalize your assessment.
+                    </p>
+                    <div class="mt-4 flex items-center text-xs text-slate-400 italic">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Hint: Drag highlighted elements into your journal to save them.
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Dataset Alpha: Population</h4>
+                        <table class="data-table w-full">
+                            <thead><tr><th>Year</th><th>North</th><th>South</th><th>East</th><th>West</th></tr></thead>
+                            <tbody>
+                                <tr><td>2021</td><td>450</td><td>320</td><td>510</td><td>290</td></tr>
+                                <tr><td>2023</td><td>390</td><td>250</td><td>440</td><td>240</td></tr>
+                                <tr><td>2025</td><td>220</td><td>90</td><td>310</td><td>75</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Dataset Beta: Toxicity</h4>
+                        <table class="data-table w-full">
+                            <thead><tr><th>Zone</th><th>Lead (Pb)</th><th>Mercury (Hg)</th></tr></thead>
+                            <tbody>
+                                <tr><td>A (North)</td><td>12.5</td><td>2.1</td></tr>
+                                <tr><td>B (South)</td><td>24.8</td><td>1.2</td></tr>
+                                <tr><td>C (East)</td><td>9.2</td><td>0.8</td></tr>
+                                <tr><td>D (West)</td><td>35.1</td><td>4.5</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="questions-container" class="space-y-6">
+                    </div>
+            </div>
+            
+            <div id="results-screen" class="hidden absolute inset-0 bg-white z-50 flex flex-col items-center justify-center text-center space-y-6">
+                <div class="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h2 class="text-4xl font-extrabold text-slate-900">Analysis Complete</h2>
+                <div id="score-summary" class="text-lg text-slate-600 bg-slate-50 p-6 rounded-xl border border-slate-200 w-96"></div>
+                <button onclick="location.reload()" class="bg-slate-900 hover:bg-black text-white px-8 py-3 rounded-xl font-bold shadow-lg transition">Begin New Simulation</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            timeLeft: 35 * 60,
+            timerInterval: null,
+            journalEntries: [],
+            answers: {}
+        };
+
+        const questions = [
+            {
+                id: "q1",
+                title: "Data Interpretation: Population Crisis",
+                text: "Based on Dataset Alpha, which quadrant experienced the highest percentage decline between 2021 and 2025?",
+                options: ["North Quadrant", "South Quadrant", "East Quadrant", "West Quadrant"],
+                correct: 3 
+            },
+            {
+                id: "q2",
+                title: "Inference: Environmental Impact",
+                text: "Cross-referencing the constraints in the field report with Dataset Beta, what is the primary cause for the West quadrant's critical failure?",
+                options: [
+                    "Lead levels exceeding 15 mg/kg only", 
+                    "Mercury levels causing behavioral anomalies", 
+                    "Combined lethal levels of both Lead and Mercury", 
+                    "Natural population decay"
+                ],
+                correct: 2 
+            },
+            {
+                id: "q3",
+                title: "Decision Science: Facility Siting",
+                text: "To ensure species survival, you must place the new breeding facility in a zone that meets the Lead safety threshold AND maintains a 2025 population of > 300. Where do you build?",
+                options: ["Zone A (North)", "Zone B (South)", "Zone C (East)", "Zone D (West)"],
+                correct: 2 
+            }
+        ];
+
+        // --- Initialization ---
+        function init() {
+            renderQuestions();
+            startTimer();
+            document.getElementById('finish-btn').classList.remove('hidden');
+        }
+
+        function startTimer() {
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                let mins = Math.floor(state.timeLeft / 60);
+                let secs = state.timeLeft % 60;
+                let timerEl = document.getElementById('timer');
+                
+                timerEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                
+                if (state.timeLeft <= 300) timerEl.classList.add('text-red-500', 'animate-pulse');
+                if (state.timeLeft <= 0) finishCase();
+            }, 1000);
+        }
+
+        // --- Drag and Drop Logic ---
+        function drag(ev) {
+            ev.dataTransfer.setData("text/plain", ev.target.getAttribute('data-info'));
+            ev.target.style.opacity = '0.5';
+        }
+
+        document.addEventListener('dragend', (ev) => {
+            if(ev.target.classList.contains('draggable')) ev.target.style.opacity = '1';
+        });
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            document.getElementById('journal-dropzone').classList.add('dropzone-active');
+        }
+
+        function dragLeave(ev) {
+            document.getElementById('journal-dropzone').classList.remove('dropzone-active');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const dropzone = document.getElementById('journal-dropzone');
+            dropzone.classList.remove('dropzone-active');
+            
+            const data = ev.dataTransfer.getData("text/plain");
+            if (data && !state.journalEntries.find(entry => entry.text === data)) {
+                state.journalEntries.push({
+                    id: Date.now().toString(),
+                    text: data,
+                    important: false
+                });
+                renderJournal();
+            }
+        }
+
+        // --- Journal Rendering ---
+        function renderJournal() {
+            const list = document.getElementById('journal-list');
+            const emptyMsg = document.getElementById('empty-journal-msg');
+            
+            if (state.journalEntries.length === 0) {
+                list.classList.add('hidden');
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+
+            list.classList.remove('hidden');
+            emptyMsg.classList.add('hidden');
+            
+            list.innerHTML = state.journalEntries.map(entry => `
+                <li class="bg-slate-700/50 p-3 rounded-lg border ${entry.important ? 'border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.2)]' : 'border-slate-600'} flex items-start gap-3 transition-all duration-300 relative group animate-[fadeIn_0.3s_ease-out]">
+                    <button onclick="toggleImportant('${entry.id}')" class="mt-0.5 text-lg focus:outline-none transition-transform hover:scale-110" title="Mark as important">
+                        ${entry.important ? '⭐' : '<span class="grayscale opacity-40">⭐</span>'}
+                    </button>
+                    <span class="text-sm text-slate-200 leading-snug flex-1">${entry.text}</span>
+                    <button onclick="removeJournalEntry('${entry.id}')" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400 transition-opacity">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </li>
+            `).join('');
+        }
+
+        function toggleImportant(id) {
+            const entry = state.journalEntries.find(e => e.id === id);
+            if(entry) {
+                entry.important = !entry.important;
+                renderJournal();
+            }
+        }
+
+        function removeJournalEntry(id) {
+            state.journalEntries = state.journalEntries.filter(e => e.id !== id);
+            renderJournal();
+        }
+
+        // --- Questions & Assessment ---
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = `<h3 class="text-xl font-bold text-slate-800 border-b pb-2 mb-6">Assessment Decisions</h3>` + 
+            questions.map((q, index) => `
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-4">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded">Q${index + 1}</span>
+                        <h4 class="font-bold text-slate-800">${q.title}</h4>
+                    </div>
+                    <p class="text-slate-600 mb-5 text-sm">${q.text}</p>
+                    <div class="space-y-2">
+                        ${q.options.map((opt, i) => `
+                            
