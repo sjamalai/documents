@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McKinsey Solve — Practice Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --surface: #111620;
+    --surface2: #1a2030;
+    --surface3: #222d40;
+    --border: rgba(255,255,255,0.08);
+    --border-active: rgba(80,160,255,0.5);
+    --text: #e8edf5;
+    --text-muted: #6b7a94;
+    --text-dim: #3d4a60;
+    --accent: #3d8eff;
+    --accent-glow: rgba(61,142,255,0.15);
+    --green: #2ecc71;
+    --green-dim: rgba(46,204,113,0.12);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.12);
+    --red: #e74c3c;
+    --red-dim: rgba(231,76,60,0.12);
+    --teal: #1abc9c;
+    --purple: #9b59b6;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --radius: 8px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── LANDING ── */
+  #screen-landing {
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 20%, rgba(61,142,255,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(155,89,182,0.06) 0%, transparent 50%),
+                var(--bg);
+    padding: 2rem;
+    text-align: center;
+  }
+  .landing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(61,142,255,0.1);
+    border: 1px solid rgba(61,142,255,0.25);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 2rem;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .landing-title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 0.75rem;
+  }
+  .landing-title span { color: var(--accent); font-weight: 600; }
+
+  .landing-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 3rem;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.7;
+  }
+
+  .game-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto 3rem;
+  }
+  .game-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .game-card:hover { border-color: var(--border-active); background: var(--surface2); transform: translateY(-2px); }
+  .game-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-color, var(--accent));
+    opacity: 0.6;
+  }
+  .game-card-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .game-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .game-card-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .game-card-skill {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+  }
+
+  .btn-start {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: opacity 0.2s, transform 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .btn-start:hover { opacity: 0.9; transform: scale(1.02); }
+
+  /* ── GAME SHELL ── */
+  #screen-game {
+    flex-direction: column;
+  }
+
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: 16px;
+  }
+  .game-header-left { display: flex; align-items: center; gap: 12px; }
+  .game-title-tag {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+  .game-name-display {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 14px;
+  }
+  .timer-icon { font-size: 13px; }
+  .timer-val {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    min-width: 42px;
+  }
+  .timer-val.warn { color: var(--amber); }
+  .timer-val.crit { color: var(--red); animation: blink 0.5s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0.4; } }
+
+  .score-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .score-num { color: var(--green); font-size: 16px; font-weight: 500; }
+
+  .progress-wrap {
+    padding: 10px 24px 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .phase-tabs {
+    display: flex;
+    gap: 2px;
+  }
+  .phase-tab {
+    flex: 1;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 10px;
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .phase-tab.done { color: var(--green); border-color: var(--green); opacity: 0.7; }
+  .phase-tab.active { color: var(--accent); border-color: var(--accent); }
+
+  /* ── GAME CONTENT ── */
+  .game-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── SHARED COMPONENTS ── */
+  .section-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .card-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--sans);
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--border-active); }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary { background: var(--accent); border-color: transparent; color: #fff; }
+  .btn.primary:hover { opacity: 0.9; }
+  .btn.success { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .btn.danger { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+  .btn.sm { padding: 6px 12px; font-size: 12px; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 400;
+  }
+  .tag.green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+  .tag.amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.25); }
+  .tag.red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(231,76,60,0.25); }
+  .tag.blue { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(61,142,255,0.25); }
+  .tag.purple { background: rgba(155,89,182,0.12); color: var(--purple); border: 1px solid rgba(155,89,182,0.25); }
+  .tag.teal { background: rgba(26,188,156,0.12); color: var(--teal); border: 1px solid rgba(26,188,156,0.25); }
+
+  /* ── SEA WOLF (ECOSYSTEM GAME) ── */
+  .ecosystem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media(max-width:600px) { .ecosystem-grid { grid-template-columns: 1fr; } }
+
+  .species-pool {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+  }
+  .species-pool h4 {
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .species-slot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .species-slot:hover { border-color: var(--border-active); background: var(--surface3); }
+  .species-slot.dragging { opacity: 0.4; border-style: dashed; }
+  .species-slot.placed { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+  .species-name { font-size: 13px; font-weight: 500; }
+  .species-role { font-size: 10px; color: var(--text-muted); font-family: var(--mono); }
+
+  .food-chain-builder {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+  }
+  .chain-level {
+    margin-bottom: 12px;
+  }
+  .chain-level-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chain-level-label .lvl-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--surface3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .drop-zone {
+    min-height: 50px;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-zone.drag-over { border-color: var(--accent); background: var(--accent-glow); }
+  .drop-zone-empty {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    width: 100%;
+    text-align: center;
+    padding: 6px;
+  }
+  .placed-species {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .placed-species:hover { border-color: var(--red); background: var(--red-dim); }
+  .placed-species .remove-x { color: var(--text-muted); font-size: 10px; }
+
+  .chain-arrow {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 16px;
+    margin: 2px 0;
+  }
+
+  /* ── PLANT DEFENSE ── */
+  .plant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 16px;
+  }
+  @media(max-width:600px) { .plant-grid { grid-template-columns: 1fr; } }
+
+  .threat-list .threat-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .threat-label { font-size: 13px; font-weight: 500; }
+  .threat-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .response-matrix {
+    display: grid;
+    gap: 8px;
+  }
+  .response-option {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .response-option:hover { border-color: var(--border-active); background: var(--surface3); }
+  .response-option.selected { border-color: var(--accent); background: var(--accent-glow); }
+  .response-option.correct { border-color: var(--green); background: var(--green-dim); }
+  .response-option.incorrect { border-color: var(--red); background: var(--red-dim); }
+  .response-option.missed { border-color: var(--amber); background: var(--amber-dim); }
+  .response-title { font-size: 13px; font-weight: 500; }
+  .response-effect { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  .health-bar-wrap {
+    margin-bottom: 16px;
+  }
+  .health-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    font-family: var(--mono);
+  }
+  .health-bar-bg {
+    height: 8px;
+    background: var(--surface3);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .health-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s, background 0.4s;
+  }
+
+  /* ── REDROCK STUDY ── */
+  .data-exhibit {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .data-exhibit-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .exhibit-tag { color: var(--accent); }
+
+  .chart-container {
+    padding: 1rem;
+    position: relative;
+  }
+  svg.chart-svg { overflow: visible; }
+  .chart-bar { transition: opacity 0.15s; cursor: pointer; }
+  .chart-bar:hover { opacity: 0.8; }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .data-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface2); }
+  .num-pos { color: var(--green); font-family: var(--mono); }
+  .num-neg { color: var(--red); font-family: var(--mono); }
+  .num-neu { font-family: var(--mono); }
+
+  .question-bank {
+    display: grid;
+    gap: 10px;
+  }
+  .question-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+  }
+  .question-stem {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  @media(max-width:500px) { .options-grid { grid-template-columns: 1fr; } }
+  .opt-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--sans);
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .opt-btn:hover { border-color: var(--border-active); background: var(--surface3); }
+  .opt-btn.selected-correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+  .opt-btn.selected-wrong { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+  .opt-btn.reveal-correct { border-color: var(--amber); background: var(--amber-dim); }
+  .opt-btn:disabled { cursor: default; }
+
+  .explanation-box {
+    margin-top: 8px;
+    background: var(--surface2);
+    border-left: 2px solid var(--teal);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: none;
+    line-height: 1.6;
+  }
+  .explanation-box.visible { display: block; }
+
+  /* ── RESULTS ── */
+  #screen-results {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg);
+    text-align: center;
+  }
+  .results-container { max-width: 640px; width: 100%; }
+  .results-title { font-size: 2rem; font-weight: 300; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  .results-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 2.5rem; }
+
+  .score-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .score-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+  }
+  .score-tile-label { font-size: 11px; color: var(--text-muted); font-family: var(--mono); margin-bottom: 6px; }
+  .score-tile-val { font-size: 1.75rem; font-weight: 500; }
+  .score-tile-val.high { color: var(--green); }
+  .score-tile-val.mid { color: var(--amber); }
+  .score-tile-val.low { color: var(--red); }
+
+  .trait-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 2rem;
+    text-align: left;
+  }
+  .trait-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+  }
+  .trait-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .trait-bar-bg { height: 4px; background: var(--surface3); border-radius: 2px; margin-bottom: 6px; overflow: hidden; }
+  .trait-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+  .trait-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+  .results-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── FEEDBACK TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.good { border-color: rgba(46,204,113,0.4); color: var(--green); }
+  .toast.bad { border-color: rgba(231,76,60,0.4); color: var(--red); }
+  .toast.info { border-color: rgba(61,142,255,0.4); color: var(--accent); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  .hint-callout {
+    background: var(--surface2);
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .hint-icon { color: var(--amber); flex-shrink: 0; margin-top: 1px; }
+
+  /* feedback panel at bottom */
+  .feedback-panel {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: none;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .feedback-panel.visible { display: block; }
+  .feedback-panel-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .feedback-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .feedback-text strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ══════════ LANDING ══════════ -->
+<div id="screen-landing" class="screen active">
+  <div class="landing-badge">
+    <span class="dot"></span>
+    MCKINSEY SOLVE — PRACTICE MODE
+  </div>
+  <h1 class="landing-title">Train your<br><span>problem-solving</span><br>mind.</h1>
+  <p class="landing-sub">A simulation of McKinsey's Solve assessment — three cognitive games, timed environments, and real scoring feedback. No prep needed. Just play.</p>
+
+  <div class="game-cards">
+    <div class="game-card" style="--card-color: #2ecc71;" onclick="startGame('seawolf')">
+      <span class="game-card-icon">🌊</span>
+      <div class="game-card-name">Sea Wolf — Ecosystem Builder</div>
+      <div class="game-card-desc">Construct a balanced food chain from species cards. Every placement affects the whole system.</div>
+      <span class="game-card-skill">Systems thinking</span>
+    </div>
+    <div class="game-card" style="--card-color: #9b59b6;" onclick="startGame('plant')">
+      <span class="game-card-icon">🌿</span>
+      <div class="game-card-name">Plant Defense — Threat Response</div>
+      <div class="game-card-desc">Diagnose incoming ecological threats and allocate the correct plant defenses under time pressure.</div>
+      <span class="game-card-skill">Decision-making</span>
+    </div>
+    <div class="game-card" style="--card-color: #e74c3c;" onclick="startGame('redrock')">
+      <span class="game-card-icon">📊</span>
+      <div class="game-card-name">Redrock Study — Data Interpreter</div>
+      <div class="game-card-desc">Read charts and tables from a mining project. Answer insight questions against the clock.</div>
+      <span class="game-card-skill">Numerical reasoning</span>
+    </div>
+    <div class="game-card" style="--card-color: #f5a623;" onclick="startGame('full')">
+      <span class="game-card-icon">⚡</span>
+      <div class="game-card-name">Full Simulation</div>
+      <div class="game-card-desc">All three games in sequence, just like the real Solve assessment. ~25 minutes.</div>
+      <span class="game-card-skill">Full battery</span>
+    </div>
+  </div>
+
+  <button class="btn-start" onclick="startGame('full')">Begin full simulation →</button>
+</div>
+
+<!-- ══════════ GAME SHELL ══════════ -->
+<div id="screen-game" class="screen">
+  <div class="game-header">
+    <div class="game-header-left">
+      <div class="game-title-tag">MCKINSEY SOLVE</div>
+      <div class="game-name-display" id="game-name-display">—</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="score-wrap">
+        <span>PTS</span>
+        <span class="score-num" id="score-display">0</span>
+      </div>
+      <div class="timer-wrap">
+        <span class="timer-icon">⏱</span>
+        <span class="timer-val" id="timer-display">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="phase-tabs" id="phase-tabs"></div>
+  </div>
+
+  <div class="game-content" id="game-content"></div>
+
+  <div class="feedback-panel" id="feedback-panel">
+    <div class="feedback-panel-inner">
+      <div class="feedback-text" id="feedback-panel-text"></div>
+      <button class="btn primary" id="feedback-next-btn" onclick="advanceGame()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ RESULTS ══════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-container">
+    <div id="results-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   JSON DATA LAYER
+═══════════════════════════════════════════════ */
+
+const GAME_DATA = {
+
+  seawolf: {
+    name: "Sea Wolf — Ecosystem Builder",
+    timeLimit: 480,
+    levels: [
+      {
+        id: "sw1",
+        title: "Open Ocean Ecosystem",
+        instructions: "Build a valid 4-level food chain using the species below. Drag each species into the correct trophic level. An apex predator cannot share a level with a primary producer.",
+        species: [
+          { id: "phyto",  name: "Phytoplankton", role: "Primary producer",    trophic: 1, emoji: "🌱" },
+          { id: "krill",  name: "Krill",          role: "Primary consumer",   trophic: 2, emoji: "🦐" },
+          { id: "herring",name: "Herring",         role: "Secondary consumer", trophic: 3, emoji: "🐟" },
+          { id: "seal",   name: "Fur Seal",        role: "Secondary consumer", trophic: 3, emoji: "🦭" },
+          { id: "orca",   name: "Orca",            role: "Apex predator",      trophic: 4, emoji: "🐋" },
+          { id: "algae",  name: "Algae",           role: "Primary producer",   trophic: 1, emoji: "🌿" },
+          { id: "squid",  name: "Giant Squid",     role: "Tertiary consumer",  trophic: 4, emoji: "🦑" },
+          { id: "shark",  name: "Great White",     role: "Apex predator",      trophic: 4, emoji: "🦈" }
+        ],
+        levels: [
+          { label: "Level 4 — Apex Predators",      correct: ["orca","shark","squid"] },
+          { label: "Level 3 — Secondary Consumers", correct: ["herring","seal"] },
+          { label: "Level 2 — Primary Consumers",   correct: ["krill"] },
+          { label: "Level 1 — Primary Producers",   correct: ["phyto","algae"] }
+        ]
+      },
+      {
+        id: "sw2",
+        title: "Rocky Shoreline Ecosystem",
+        instructions: "A storm has disrupted this shoreline community. Reassemble the trophic pyramid by correctly classifying each organism.",
+        species: [
+          { id: "mussel",  name: "Mussel",      role: "Filter feeder",      trophic: 2, emoji: "🐚" },
+          { id: "kelp",    name: "Giant Kelp",  role: "Primary producer",   trophic: 1, emoji: "🌾" },
+          { id: "urchin",  name: "Sea Urchin",  role: "Primary consumer",   trophic: 2, emoji: "🦔" },
+          { id: "otter",   name: "Sea Otter",   role: "Apex predator",      trophic: 4, emoji: "🦦" },
+          { id: "barnacle",name: "Barnacle",     role: "Primary consumer",   trophic: 2, emoji: "🦞" },
+          { id: "star",    name: "Sea Star",     role: "Secondary consumer", trophic: 3, emoji: "⭐" }
+        ],
+        levels: [
+          { label: "Level 4 — Apex Predators",      correct: ["otter"] },
+          { label: "Level 3 — Secondary Consumers", correct: ["star"] },
+          { label: "Level 2 — Primary Consumers",   correct: ["mussel","urchin","barnacle"] },
+          { label: "Level 1 — Primary Producers",   correct: ["kelp"] }
+        ]
+      }
+    ]
+  },
+
+  plant: {
+    name: "Plant Defense — Threat Response",
+    timeLimit: 360,
+    scenarios: [
+      {
+        id: "pd1",
+        title: "Fungal Invasion",
+        context: "A fungal pathogen is spreading across the greenhouse. You have limited resources. Select the optimal response strategy.",
+        health: 80,
+        threat: { name: "Botrytis cinerea (Grey Mould)", severity: "High", vector: "Airborne spores", spread: "Rapid" },
+        options: [
+          { id: "a", title: "Apply systemic fungicide", effect: "Eliminates pathogen; risks resistance build-up in 2–3 cycles", correct: true, points: 30, tag: "optimal" },
+          { id: "b", title: "Increase watering to wash off spores", effect: "Counterproductive — botrytis thrives in moisture", correct: false, points: 0 },
+          { id: "c", title: "Prune infected tissue and isolate", effect: "Reduces spread but doesn't eliminate existing infection", correct: false, points: 15, partial: true },
+          { id: "d", title: "Lower humidity and improve airflow", effect: "Slows spread significantly; best combined with fungicide", correct: false, points: 20, partial: true }
+        ],
+        explanation: "Systemic fungicide (option A) is the first-line response for botrytis. However, the real Solve game rewards combined strategies — selecting A + D together scores highest because you address root conditions."
+      },
+      {
+        id: "pd2",
+        title: "Aphid Outbreak",
+        context: "Aphid colonies are expanding rapidly across three plant beds. Your biological control stock is limited. Prioritize your intervention.",
+        health: 65,
+        threat: { name: "Myzus persicae (Green Peach Aphid)", severity: "Medium", vector: "Direct contact / wind", spread: "Medium" },
+        options: [
+          { id: "a", title: "Release ladybird beetles (biological control)", effect: "Targeted; no chemical residue; takes 5–7 days to impact", correct: true, points: 30, tag: "optimal" },
+          { id: "b", title: "Broad-spectrum pesticide spray", effect: "Kills aphids but also kills beneficial insects and pollinators", correct: false, points: 5 },
+          { id: "c", title: "Water jet spray to dislodge colonies", effect: "Immediate knockdown on accessible surfaces; labour intensive", correct: false, points: 20, partial: true },
+          { id: "d", title: "Yellow sticky traps around perimeter", effect: "Monitors population but does not control existing colonies", correct: false, points: 10 }
+        ],
+        explanation: "Biological control (A) is optimal for medium-severity aphid outbreaks in a greenhouse context. A broad-spectrum pesticide (B) is a common wrong answer — it's fast but causes downstream ecological damage that the Solve game penalises."
+      },
+      {
+        id: "pd3",
+        title: "Root Rot Crisis",
+        context: "Multiple plants show wilting and yellowing despite adequate water. Soil tests confirm Phytophthora root rot. The outbreak is in sector 3 only.",
+        health: 45,
+        threat: { name: "Phytophthora cinnamomi", severity: "Critical", vector: "Contaminated soil / waterlogging", spread: "Slow but lethal" },
+        options: [
+          { id: "a", title: "Drench with phosphonate fungicide", effect: "Best chemical control for Phytophthora; systemic action", correct: true, points: 25, tag: "optimal" },
+          { id: "b", title: "Quarantine sector 3 and remove all plants", effect: "Stops spread but loses all infected stock unnecessarily", correct: false, points: 15, partial: true },
+          { id: "c", title: "Improve drainage and reduce irrigation", effect: "Addresses the root cause (waterlogging) but too slow at critical stage", correct: false, points: 10 },
+          { id: "d", title: "Apply biocontrol Trichoderma to soil", effect: "Excellent preventative but insufficient against active critical infection", correct: false, points: 10 }
+        ],
+        explanation: "Phosphonate drench (A) is the only effective curative option for Phytophthora. Quarantine (B) is a partial credit trap — it's defensible but suboptimal because early-stage infected plants can often be saved."
+      }
+    ]
+  },
+
+  redrock: {
+    name: "Redrock Study — Data Interpreter",
+    timeLimit: 420,
+    context: "Redrock Mining Co. is evaluating whether to expand operations at its Kalgoorlie site. You are reviewing three data sets and must answer analytical questions under time pressure.",
+    exhibits: [
+      {
+        id: "table1",
+        type: "table",
+        title: "Exhibit A — Ore Yield by Zone (tonnes, 2019–2023)",
+        columns: ["Zone", "2019", "2020", "2021", "2022", "2023", "5yr CAGR"],
+        rows: [
+          ["North Shaft",    "41,200", "43,500", "44,800", "41,300", "38,900", "-1.4%"],
+          ["Central Open",   "28,600", "31,200", "35,700", "38,100", "40,200", "+8.9%"],
+          ["South Tunnel",   "15,300", "14,800", "14,100", "13,200", "11,800", "-6.1%"],
+          ["East Ridge",     "8,200",  "9,400",  "11,300", "13,900", "17,200", "+20.3%"],
+          ["Total",          "93,300", "98,900", "105,900","106,500","108,100","+3.7%"]
+        ],
+        highlights: { positive: ["East Ridge","Central Open"], negative: ["South Tunnel"] }
+      },
+      {
+        id: "chart1",
+        type: "bar_chart",
+        title: "Exhibit B — Operating Cost per Tonne (AUD) by Zone, 2023",
+        data: [
+          { label: "North Shaft",   value: 68, color: "#3d8eff" },
+          { label: "Central Open",  value: 42, color: "#2ecc71" },
+          { label: "South Tunnel",  value: 94, color: "#e74c3c" },
+          { label: "East Ridge",    value: 51, color: "#9b59b6" }
+        ],
+        benchmark: 62,
+        benchmarkLabel: "Company avg: $62/t"
+      },
+      {
+        id: "table2",
+        type: "table",
+        title: "Exhibit C — Reserve Estimates & Break-even Price",
+        columns: ["Zone", "Remaining Reserve (Mt)", "Est. Life (yrs)", "Break-even (AUD/t)"],
+        rows: [
+          ["North Shaft",   "3.2",  "8",  "$71"],
+          ["Central Open",  "8.7",  "21", "$45"],
+          ["South Tunnel",  "0.9",  "7",  "$98"],
+          ["East Ridge",    "5.1",  "29", "$54"]
+        ]
+      }
+    ],
+    questions: [
+      {
+        id: "rq1",
+        stem: "Which zone should Redrock prioritise for expansion capital based on the three exhibits?",
+        options: ["North Shaft — largest historical volume", "Central Open — strong growth and low cost", "East Ridge — highest CAGR and long reserve life", "South Tunnel — lowest reserve means highest urgency"],
+        correct: 2,
+        explanation: "East Ridge (C) has the highest 5yr CAGR (+20.3%), a 29-year reserve life, and a below-average cost of $51/t vs $62 benchmark. Central Open is the second-best answer but its growth rate is already moderating — it's a 'milk' zone, not an expansion target."
+      },
+      {
+        id: "rq2",
+        stem: "The current gold price is AUD $95/tonne equivalent. Which zone is currently operating below its break-even price?",
+        options: ["North Shaft ($71 break-even)", "Central Open ($45 break-even)", "East Ridge ($54 break-even)", "South Tunnel ($98 break-even)"],
+        correct: 3,
+        explanation: "South Tunnel's break-even is $98/t, which exceeds the current price of $95/t. This means South Tunnel is being operated at a loss. This type of question appears frequently in the Redrock mini-game."
+      },
+      {
+        id: "rq3",
+        stem: "If Central Open's volume grows at its 5yr CAGR rate for 3 more years, what would its approximate 2026 output be?",
+        options: ["~44,000t", "~47,000t", "~52,000t", "~58,000t"],
+        correct: 2,
+        explanation: "40,200 × (1.089)³ ≈ 40,200 × 1.292 ≈ 51,937t ≈ 52,000t. The compound growth calculation: year 1 = 43,778, year 2 = 47,673, year 3 = 51,906. Option C (~52,000t) is correct."
+      },
+      {
+        id: "rq4",
+        stem: "A cost reduction initiative aims to bring North Shaft to the company average cost. What saving per tonne is required?",
+        options: ["$4/t", "$6/t", "$8/t", "$26/t"],
+        correct: 1,
+        explanation: "North Shaft costs $68/t. Company average is $62/t. Delta = $68 - $62 = $6/t. This is a straightforward differencing question, but under time pressure candidates often reach for the wrong North Shaft number."
+      },
+      {
+        id: "rq5",
+        stem: "Based on reserve life, which zone poses the greatest business continuity risk if no new reserves are found?",
+        options: ["East Ridge (29 yrs)", "Central Open (21 yrs)", "North Shaft (8 yrs)", "South Tunnel (7 yrs)"],
+        correct: 3,
+        explanation: "South Tunnel has only 7 years of remaining reserve — the shortest — and is already operating below break-even. It represents both the most immediate continuity risk and the worst economics, making it a strong divestment candidate."
+      }
+    ]
+  }
+};
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+
+const STATE = {
+  mode: null,
+  queue: [],
+  currentGameIdx: 0,
+  currentGame: null,
+  phase: 0,
+  timer: null,
+  timeLeft: 0,
+  score: 0,
+  phaseScores: {},
+  phaseData: {},
+  // seawolf state
+  sw: { currentLevel: 0, placements: {} },
+  // plant state
+  pd: { currentScenario: 0, selectedOption: null, health: 100 },
+  // redrock state
+  rr: { answered: {} }
+};
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════ */
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+function startGame(mode) {
+  STATE.mode = mode;
+  STATE.score = 0;
+  STATE.currentGameIdx = 0;
+  STATE.phaseScores = {};
+  STATE.phaseData = {};
+
+  if (mode === 'full') {
+    STATE.queue = ['seawolf', 'plant', 'redrock'];
+  } else {
+    STATE.queue = [mode];
+  }
+
+  showScreen('game');
+  loadNextGame();
+}
+
+function loadNextGame() {
+  if (STATE.currentGameIdx >= STATE.queue.length) {
+    showResults();
+    return;
+  }
+  const gameKey = STATE.queue[STATE.currentGameIdx];
+  STATE.currentGame = gameKey;
+  STATE.phase = 0;
+
+  const gameInfo = GAME_DATA[gameKey];
+  document.getElementById('game-name-display').textContent = gameInfo.name;
+
+  buildPhaseTabs(gameKey);
+  hideFeedbackPanel();
+  resetTimer(gameInfo.timeLimit);
+
+  if (gameKey === 'seawolf') {
+    STATE.sw = { currentLevel: 0, placements: { 0: {}, 1: {} } };
+    renderSeaWolf();
+  } else if (gameKey === 'plant') {
+    STATE.pd = { currentScenario: 0, selectedOption: null, health: 100 };
+    renderPlantDefense();
+  } else if (gameKey === 'redrock') {
+    STATE.rr = { answered: {} };
+    renderRedrock();
+  }
+}
+
+function buildPhaseTabs(gameKey) {
+  const tabs = document.getElementById('phase-tabs');
+  tabs.innerHTML = '';
+  const data = GAME_DATA[gameKey];
+  let phases = [];
+
+  if (gameKey === 'seawolf') phases = data.levels.map((l, i) => `Level ${i + 1}: ${l.title}`);
+  else if (gameKey === 'plant') phases = data.scenarios.map((s, i) => `Scenario ${i + 1}`);
+  else if (gameKey === 'redrock') phases = ['Exhibits', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5'];
+
+  phases.forEach((p, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'phase-tab' + (i === 0 ? ' active' : '');
+    tab.textContent = p;
+    tab.id = `phase-tab-${i}`;
+    tabs.appendChild(tab);
+  });
+}
+
+function updatePhaseTabs(current, total) {
+  for (let i = 0; i < total; i++) {
+    const tab = document.getElementById(`phase-tab-${i}`);
+    if (!tab) continue;
+    tab.className = 'phase-tab' + (i < current ? ' done' : i === current ? ' active' : '');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════════ */
+
+function resetTimer(seconds) {
+  clearInterval(STATE.timer);
+  STATE.timeLeft = seconds;
+  updateTimerDisplay();
+  STATE.timer = setInterval(() => {
+    STATE.timeLeft--;
+    updateTimerDisplay();
+    if (STATE.timeLeft <= 0) {
+      clearInterval(STATE.timer);
+      handleTimerEnd();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timer-display');
+  const m = Math.floor(STATE.timeLeft / 60);
+  const s = STATE.timeLeft % 60;
+  el.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  el.className = 'timer-val' + (STATE.timeLeft <= 30 ? ' crit' : STATE.timeLeft <= 90 ? ' warn' : '');
+}
+
+function handleTimerEnd() {
+  showToast('⏱ Time's up!', 'bad');
+  setTimeout(advanceGame, 1500);
+}
+
+function addScore(pts) {
+  STATE.score += pts;
+  document.getElementById('score-display').textContent = STATE.score;
+  const el = document.getElementById('score-display');
+  el.style.transform = 'scale(1.3)';
+  setTimeout(() => { el.style.transform = 'scale(1)'; el.style.transition = 'transform 0.2s'; }, 200);
+}
+
+/* ═══════════════════════════════════════════════
+   FEEDBACK PANEL
+═══════════════════════════════════════════════ */
+
+function showFeedbackPanel(text, nextLabel = 'Next →') {
+  const panel = document.getElementById('feedback-panel');
+  document.getElementById('feedback-panel-text').innerHTML = text;
+  document.getElementById('feedback-next-btn').textContent = nextLabel;
+  panel.classList.add('visible');
+}
+
+function hideFeedbackPanel() {
+  document.getElementById('feedback-panel').classList.remove('visible');
+}
+
+function advanceGame() {
+  hideFeedbackPanel();
+  const gameKey = STATE.currentGame;
+
+  if (gameKey === 'seawolf') {
+    const nextLevel = STATE.sw.currentLevel + 1;
+    if (nextLevel < GAME_DATA.seawolf.levels.length) {
+      STATE.sw.currentLevel = nextLevel;
+      updatePhaseTabs(nextLevel, GAME_DATA.seawolf.levels.length);
+      renderSeaWolf();
+    } else {
+      clearInterval(STATE.timer);
+      STATE.currentGameIdx++;
+      if (STATE.currentGameIdx >= STATE.queue.length) { showResults(); }
+      else { loadNextGame(); }
+    }
+  } else if (gameKey === 'plant') {
+    const next = STATE.pd.currentScenario + 1;
+    if (next < GAME_DATA.plant.scenarios.length) {
+      STATE.pd.currentScenario = next;
+      STATE.pd.selectedOption = null;
+      updatePhaseTabs(next, GAME_DATA.plant.scenarios.length);
+      renderPlantDefense();
+    } else {
+      clearInterval(STATE.timer);
+      STATE.currentGameIdx++;
+      if (STATE.currentGameIdx >= STATE.queue.length) { showResults(); }
+      else { loadNextGame(); }
+    }
+  } else if (gameKey === 'redrock') {
+    clearInterval(STATE.timer);
+    STATE.currentGameIdx++;
+    if (STATE.currentGameIdx >= STATE.queue.length) { showResults(); }
+    else { loadNextGame(); }
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+
+let toastTimeout;
+function showToast(msg, type = 'info') {
+  clearTimeout(toastTimeout);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  toastTimeout = setTimeout(() => { t.className = `toast ${type}`; }, 2500);
+}
+
+/* ═══════════════════════════════════════════════
+   SEA WOLF RENDER
+═══════════════════════════════════════════════ */
+
+function renderSeaWolf() {
+  const levelIdx = STATE.sw.currentLevel;
+  const level = GAME_DATA.seawolf.levels[levelIdx];
+  if (!STATE.sw.placements[levelIdx]) STATE.sw.placements[levelIdx] = {};
+
+  const content = document.getElementById('game-content');
+  content.innerHTML = `
+    <div class="section-label">Sea Wolf — ${level.title}</div>
+    <div class="hint-callout">
+      <span class="hint-icon">💡</span>
+      <span>${level.instructions} Click a placed species to remove it.</span>
+    </div>
+    <div class="ecosystem-grid">
+      <div class="species-pool" id="species-pool">
+        <h4>Available species</h4>
+        <div id="species-list"></div>
+      </div>
+      <div class="food-chain-builder" id="chain-builder">
+        <h4 style="font-size:11px;font-family:var(--mono);letter-spacing:0.08em;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;">Food chain</h4>
+        <div id="chain-levels"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+      <button class="btn primary" onclick="checkSeaWolf()">Check my chain →</button>
+      <button class="btn sm" onclick="clearSeaWolf()">Clear all</button>
+    </div>
+  `;
+
+  renderSpeciesPool(level, levelIdx);
+  renderChainLevels(level, levelIdx);
+  setupDragDrop();
+}
+
+function renderSpeciesPool(level, levelIdx) {
+  const placed = getAllPlacedIds(levelIdx);
+  const list = document.getElementById('species-list');
+  list.innerHTML = '';
+  level.species.forEach(s => {
+    const isPlaced = placed.includes(s.id);
+    const el = document.createElement('div');
+    el.className = `species-slot${isPlaced ? ' placed' : ''}`;
+    el.draggable = !isPlaced;
+    el.dataset.speciesId = s.id;
+    el.innerHTML = `
+      <div>
+        <div class="species-name">${s.emoji} ${s.name}</div>
+        <div class="species-role">${s.role}</div>
+      </div>
+      <span class="tag ${isPlaced ? 'blue' : 'amber'}">${isPlaced ? 'placed' : 'drag →'}</span>
+    `;
+    if (!isPlaced) {
+      el.addEventListener('dragstart', onDragStart);
+      el.addEventListener('dragend', onDragEnd);
+    }
+    list.appendChild(el);
+  });
+}
+
+function renderChainLevels(level, levelIdx) {
+  const container = document.getElementById('chain-levels');
+  container.innerHTML = '';
+  level.levels.forEach((lvl, i) => {
+    const placement = STATE.sw.placements[levelIdx][i] || [];
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+      <div class="chain-level">
+        <div class="chain-level-label">
+          <span class="lvl-num">${level.levels.length - i}</span>
+          ${lvl.label}
+        </div>
+        <div class="drop-zone" data-level="${i}" id="drop-zone-${i}">
+          ${placement.length === 0 ? '<span class="drop-zone-empty">drop species here</span>' : ''}
+          ${placement.map(sid => {
+            const sp = level.species.find(s => s.id === sid);
+            return sp ? `<div class="placed-species" onclick="removeFromLevel(${i}, '${sid}')" title="Click to remove">
+              ${sp.emoji} ${sp.name} <span class="remove-x">✕</span>
+            </div>` : '';
+          }).join('')}
+        </div>
+      </div>
+      ${i < level.levels.length - 1 ? '<div class="chain-arrow">↓</div>' : ''}
+    `;
+    container.appendChild(wrapper);
+  });
+  setupDropZones();
+}
+
+let draggedId = null;
+function setupDragDrop() {}
+function onDragStart(e) {
+  draggedId = e.currentTarget.dataset.speciesId;
+  e.currentTarget.classList.add('dragging');
+}
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  draggedId = null;
+}
+function setupDropZones() {
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (!draggedId) return;
+      const levelIdx = STATE.sw.currentLevel;
+      const chainLevelIdx = parseInt(zone.dataset.level);
+      const placed = getAllPlacedIds(levelIdx);
+      if (placed.includes(draggedId)) { showToast('Already placed', 'info'); return; }
+      if (!STATE.sw.placements[levelIdx][chainLevelIdx]) STATE.sw.placements[levelIdx][chainLevelIdx] = [];
+      STATE.sw.placements[levelIdx][chainLevelIdx].push(draggedId);
+      draggedId = null;
+      const level = GAME_DATA.seawolf.levels[levelIdx];
+      renderSpeciesPool(level, levelIdx);
+      renderChainLevels(level, levelIdx);
+    });
+  });
+}
+
+function getAllPlacedIds(levelIdx) {
+  const p = STATE.sw.placements[levelIdx] || {};
+  return Object.values(p).flat();
+}
+
+function removeFromLevel(chainLevel, speciesId) {
+  const levelIdx = STATE.sw.currentLevel;
+  const arr = STATE.sw.placements[levelIdx][chainLevel] || [];
+  STATE.sw.placements[levelIdx][chainLevel] = arr.filter(id => id !== speciesId);
+  const level = GAME_DATA.seawolf.levels[levelIdx];
+  renderSpeciesPool(level, levelIdx);
+  renderChainLevels(level, levelIdx);
+}
+
+function clearSeaWolf() {
+  const levelIdx = STATE.sw.currentLevel;
+  STATE.sw.placements[levelIdx] = {};
+  const level = GAME_DATA.seawolf.levels[levelIdx];
+  renderSpeciesPool(level, levelIdx);
+  renderChainLevels(level, levelIdx);
+}
+
+function checkSeaWolf() {
+  const levelIdx = STATE.sw.currentLevel;
+  const level = GAME_DATA.seawolf.levels[levelIdx];
+  let correct = 0, total = 0;
+  const errors = [];
+
+  level.levels.forEach((lvl, i) => {
+    const placed = STATE.sw.placements[levelIdx][i] || [];
+    const correctSet = new Set(lvl.correct);
+    const placedSet = new Set(placed);
+    lvl.correct.forEach(id => {
+      total++;
+      if (placedSet.has(id)) correct++;
+    });
+    placed.forEach(id => {
+      if (!correctSet.has(id)) {
+        const sp = level.species.find(s => s.id === id);
+        errors.push(`${sp ? sp.name : id} is in the wrong level`);
+      }
+    });
+  });
+
+  const pct = Math.round((correct / total) * 100);
+  const pts = Math.round((correct / total) * 50);
+  addScore(pts);
+
+  if (!STATE.phaseScores['seawolf']) STATE.phaseScores['seawolf'] = 0;
+  STATE.phaseScores['seawolf'] += pts;
+
+  let msg = '';
+  if (pct === 100) {
+    msg = `<strong>✓ Perfect chain!</strong> All ${total} species correctly placed. +${pts} pts`;
+    showToast('Perfect ecosystem! 🌊', 'good');
+  } else {
+    const errMsg = errors.length ? `<br><span style="color:var(--amber);font-size:12px;">Issues: ${errors.slice(0, 2).join(', ')}</span>` : '';
+    msg = `<strong>${pct}% correct</strong> (${correct}/${total} species). +${pts} pts${errMsg}`;
+    if (pct < 60) showToast(`${pct}% — review trophic levels`, 'bad');
+    else showToast(`${pct}% — good effort`, 'info');
+  }
+
+  const isLast = levelIdx === GAME_DATA.seawolf.levels.length - 1;
+  showFeedbackPanel(msg, isLast ? 'Next game →' : 'Next level →');
+}
+
+/* ═══════════════════════════════════════════════
+   PLANT DEFENSE RENDER
+═══════════════════════════════════════════════ */
+
+function renderPlantDefense() {
+  const si = STATE.pd.currentScenario;
+  const scenario = GAME_DATA.plant.scenarios[si];
+
+  const content = document.getElementById('game-content');
+  const healthColor = STATE.pd.health > 60 ? '#2ecc71' : STATE.pd.health > 30 ? '#f5a623' : '#e74c3c';
+
+  content.innerHTML = `
+    <div class="section-label">Plant Defense — ${scenario.title}</div>
+
+    <div class="health-bar-wrap">
+      <div class="health-bar-label">
+        <span>Ecosystem health</span>
+        <span style="color:${healthColor}">${STATE.pd.health}%</span>
+      </div>
+      <div class="health-bar-bg">
+        <div class="health-bar-fill" style="width:${STATE.pd.health}%;background:${healthColor}"></div>
+      </div>
+    </div>
+
+    <div class="plant-grid">
+      <div>
+        <div class="card">
+          <div class="section-label">Situation brief</div>
+          <div class="card-body" style="margin-bottom:12px;">${scenario.context}</div>
+          <div class="threat-list">
+            <div class="threat-item">
+              <div>
+                <div class="threat-label">🦠 ${scenario.threat.name}</div>
+                <div class="threat-meta">Vector: ${scenario.threat.vector} · Spread: ${scenario.threat.spread}</div>
+              </div>
+              <span class="tag ${scenario.threat.severity === 'Critical' ? 'red' : scenario.threat.severity === 'High' ? 'amber' : 'blue'}">${scenario.threat.severity}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Select your response strategy</div>
+        <div class="response-matrix" id="response-matrix">
+          ${scenario.options.map(opt => `
+            <div class="response-option" id="resp-${opt.id}" onclick="selectPlantResponse('${opt.id}')">
+              <div class="response-title">${opt.title}</div>
+              <div class="response-effect">${opt.effect}</div>
+              ${opt.tag ? `<span class="tag green" style="margin-top:6px">${opt.tag}</span>` : ''}
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn primary" id="confirm-plant-btn" onclick="confirmPlantResponse()" disabled>Confirm response →</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function selectPlantResponse(optId) {
+  if (STATE.pd.selectedOption !== null) return;
+  STATE.pd.selectedOption = optId;
+  document.querySelectorAll('.response-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`resp-${optId}`).classList.add('selected');
+  document.getElementById('confirm-plant-btn').disabled = false;
+}
+
+function confirmPlantResponse() {
+  const si = STATE.pd.currentScenario;
+  const scenario = GAME_DATA.plant.scenarios[si];
+  const optId = STATE.pd.selectedOption;
+  if (!optId) return;
+
+  const opt = scenario.options.find(o => o.id === optId);
+  const pts = opt.points;
+  addScore(pts);
+  if (!STATE.phaseScores['plant']) STATE.phaseScores['plant'] = 0;
+  STATE.phaseScores['plant'] += pts;
+
+  const isCorrect = opt.correct;
+  const isPartial = opt.partial;
+  const damage = isCorrect ? 0 : isPartial ? 5 : 20;
+  STATE.pd.health = Math.max(0, STATE.pd.health - damage);
+
+  document.querySelectorAll('.response-option').forEach(el => el.classList.remove('selected'));
+  scenario.options.forEach(o => {
+    const el = document.getElementById(`resp-${o.id}`);
+    if (!el) return;
+    if (o.id === optId && isCorrect) el.classList.add('correct');
+    else if (o.id === optId) el.classList.add('incorrect');
+    else if (o.correct) el.classList.add('missed');
+    el.style.pointerEvents = 'none';
+  });
+
+  document.getElementById('confirm-plant-btn').disabled = true;
+
+  const statusIcon = isCorrect ? '✓' : isPartial ? '~' : '✗';
+  const statusColor = isCorrect ? 'var(--green)' : isPartial ? 'var(--amber)' : 'var(--red)';
+  const isLast = si === GAME_DATA.plant.scenarios.length - 1;
+
+  showFeedbackPanel(`
+    <strong style="color:${statusColor}">${statusIcon} ${isCorrect ? 'Optimal choice' : isPartial ? 'Partial credit' : 'Incorrect'}</strong> (+${pts} pts) — ${scenario.explanation}
+  `, isLast ? 'Next game →' : 'Next scenario →');
+
+  if (isCorrect) showToast(`Optimal choice! +${pts} pts`, 'good');
+  else if (isPartial) showToast(`Partial — ${pts} pts`, 'info');
+  else showToast(`Wrong strategy — revisit logic`, 'bad');
+}
+
+/* ═══════════════════════════════════════════════
+   REDROCK RENDER
+═══════════════════════════════════════════════ */
+
+function renderRedrock() {
+  const data = GAME_DATA.redrock;
+  const content = document.getElementById('game-content');
+
+  let exhibitsHtml = data.exhibits.map(ex => {
+    if (ex.type === 'table') return renderTableExhibit(ex);
+    if (ex.type === 'bar_chart') return renderBarChartExhibit(ex);
+    return '';
+  }).join('');
+
+  let questionsHtml = data.questions.map((q, qi) => `
+    <div class="question-item" id="qitem-${q.id}">
+      <div class="question-stem"><span style="color:var(--text-muted);font-family:var(--mono);font-size:11px;">Q${qi + 1} / ${data.questions.length} · </span>${q.stem}</div>
+      <div class="options-grid" id="opts-${q.id}">
+        ${q.options.map((opt, oi) => `
+          <button class="opt-btn" data-qi="${q.id}" data-oi="${oi}" onclick="answerRedrock('${q.id}', ${oi})">${opt}</button>
+        `).join('')}
+      </div>
+      <div class="explanation-box" id="exp-${q.id}">${q.explanation}</div>
+    </div>
+  `).join('');
+
+  content.innerHTML = `
+    <div class="section-label">Redrock Study — ${data.context}</div>
+    <div style="margin-bottom:24px;">${exhibitsHtml}</div>
+    <div class="section-label">Analytical questions</div>
+    <div class="hint-callout">
+      <span class="hint-icon">⚡</span>
+      <span>Answer all 5 questions. Use the exhibits above. Each question is independent.</span>
+    </div>
+    <div class="question-bank">${questionsHtml}</div>
+    <div style="margin-top:16px;">
+      <button class="btn primary" onclick="submitAllRedrock()">Submit all answers →</button>
+    </div>
+  `;
+
+  updatePhaseTabs(0, 6);
+
+  setTimeout(() => {
+    renderBarChart();
+  }, 100);
+}
+
+function renderTableExhibit(ex) {
+  const rows = ex.rows.map((row, ri) => `
+    <tr>${row.map((cell, ci) => {
+      const isNum = /^[\$\-\+]?\d/.test(cell.replace(/,/g, ''));
+      let cls = '';
+      if (ex.highlights && ci > 0) {
+        if (ex.highlights.positive && ex.highlights.positive.includes(row[0])) cls = 'num-pos';
+        else if (ex.highlights.negative && ex.highlights.negative.includes(row[0])) cls = 'num-neg';
+        else if (cell.includes('+')) cls = 'num-pos';
+        else if (cell.includes('-')) cls = 'num-neg';
+        else if (isNum && ci > 0) cls = 'num-neu';
+      } else if (cell.includes('+')) cls = 'num-pos';
+      else if (cell.includes('-')) cls = 'num-neg';
+      else if (isNum && ci > 0) cls = 'num-neu';
+      return ri === 0 ? `<th>${cell}</th>` : `<td class="${cls}">${cell}</td>`;
+    }).join('')}</tr>
+  `).join('');
+
+  return `
+    <div class="data-exhibit">
+      <div class="data-exhibit-header">
+        <span>${ex.title}</span>
+        <span class="exhibit-tag">EXHIBIT</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">${rows}</table>
+      </div>
+    </div>
+  `;
+}
+
+function renderBarChartExhibit(ex) {
+  return `
+    <div class="data-exhibit">
+      <div class="data-exhibit-header">
+        <span>${ex.title}</span>
+        <span class="exhibit-tag">EXHIBIT</span>
+      </div>
+      <div class="chart-container">
+        <svg id="bar-chart-svg" class="chart-svg" width="100%" height="200" viewBox="0 0 600 200"></svg>
+      </div>
+    </div>
+  `;
+}
+
+function renderBarChart() {
+  const svg = document.getElementById('bar-chart-svg');
+  if (!svg) return;
+  const ex = GAME_DATA.redrock.exhibits.find(e => e.type === 'bar_chart');
+  if (!ex) return;
+
+  const W = 600, H = 180, pad = { left: 50, right: 20, top: 20, bottom: 40 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+  const maxVal = 110;
+  const barW = (chartW / ex.data.length) * 0.55;
+  const barGap = chartW / ex.data.length;
+
+  let html = '';
+
+  // Y axis labels
+  [0, 25, 50, 75, 100].forEach(v => {
+    const y = pad.top + chartH - (v / maxVal) * chartH;
+    html += `<line x1="${pad.left}" y1="${y}" x2="${W - pad.right}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    html += `<text x="${pad.left - 5}" y="${y + 4}" fill="#6b7a94" font-size="10" text-anchor="end" font-family="IBM Plex Mono">${v}</text>`;
+  });
+
+  // Benchmark line
+  const benchY = pad.top + chartH - (ex.benchmark / maxVal) * chartH;
+  html += `<line x1="${pad.left}" y1="${benchY}" x2="${W - pad.right}" y2="${benchY}" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+  html += `<text x="${pad.left + 4}" y="${benchY - 5}" fill="#f5a623" font-size="10" font-family="IBM Plex Mono">${ex.benchmarkLabel}</text>`;
+
+  // Bars
+  ex.data.forEach((d, i) => {
+    const x = pad.left + i * barGap + barGap / 2 - barW / 2;
+    const barH = (d.value / maxVal) * chartH;
+    const y = pad.top + chartH - barH;
+    html += `<rect class="chart-bar" x="${x}" y="${y}" width="${barW}" height="${barH}" fill="${d.color}" opacity="0.85" rx="3"/>`;
+    html += `<text x="${x + barW / 2}" y="${y - 5}" fill="${d.color}" font-size="11" text-anchor="middle" font-weight="500" font-family="IBM Plex Mono">$${d.value}</text>`;
+    html += `<text x="${x + barW / 2}" y="${H - 5}" fill="#6b7a94" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">${d.label.split(' ')[0]}</text>`;
+    html += `<text x="${x + barW / 2}" y="${H + 8}" fill="#6b7a94" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">${d.label.split(' ').slice(1).join(' ')}</text>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+function answerRedrock(qId, optIdx) {
+  if (STATE.rr.answered[qId] !== undefined) return;
+  STATE.rr.answered[qId] = optIdx;
+
+  const q = GAME_DATA.redrock.questions.find(q => q.id === qId);
+  const btns = document.querySelectorAll(`[data-qi="${qId}"]`);
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === optIdx && i === q.correct) btn.className = 'opt-btn selected-correct';
+    else if (i === optIdx) btn.className = 'opt-btn selected-wrong';
+    else if (i === q.correct) btn.className = 'opt-btn reveal-correct';
+  });
+
+  const expEl = document.getElementById(`exp-${qId}`);
+  if (expEl) expEl.classList.add('visible');
+
+  const isCorrect = optIdx === q.correct;
+  const pts = isCorrect ? 20 : 0;
+  if (pts) { addScore(pts); if (!STATE.phaseScores['redrock']) STATE.phaseScores['redrock'] = 0; STATE.phaseScores['redrock'] += pts; }
+  if (isCorrect) showToast('Correct! +20 pts', 'good');
+  else showToast('Incorrect — see explanation', 'bad');
+
+  const qi = GAME_DATA.redrock.questions.findIndex(q => q.id === qId);
+  updatePhaseTabs(qi + 2, 6);
+}
+
+function submitAllRedrock() {
+  const unanswered = GAME_DATA.redrock.questions.filter(q => STATE.rr.answered[q.id] === undefined);
+  if (unanswered.length > 0) {
+    showToast(`${unanswered.length} question(s) unanswered`, 'info');
+    unanswered.forEach(q => {
+      const el = document.getElementById(`qitem-${q.id}`);
+      if (el) { el.style.borderColor = 'var(--amber)'; setTimeout(() => { el.style.borderColor = ''; }, 2000); }
+    });
+    return;
+  }
+  const answered = Object.keys(STATE.rr.answered).length;
+  const correct = GAME_DATA.redrock.questions.filter(q => STATE.rr.answered[q.id] === q.correct).length;
+  const pct = Math.round((correct / answered) * 100);
+  showFeedbackPanel(`<strong>${correct}/${answered} correct (${pct}%)</strong> — Data interpretation complete. ${pct >= 80 ? 'Strong analytical read.' : pct >= 60 ? 'Solid — review the calculation questions.' : 'Focus on compound growth and differential calculations.'}`, 'See results →');
+}
+
+/* ═══════════════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════════════ */
+
+function showResults() {
+  clearInterval(STATE.timer);
+  showScreen('results');
+
+  const total = STATE.score;
+  const maxPossible = STATE.queue.reduce((acc, key) => {
+    if (key === 'seawolf') return acc + 100;
+    if (key === 'plant') return acc + 90;
+    if (key === 'redrock') return acc + 100;
+    return acc;
+  }, 0);
+
+  const pct = Math.round((total / maxPossible) * 100);
+  const tier = pct >= 80 ? 'high' : pct >= 55 ? 'mid' : 'low';
+  const tierLabel = pct >= 80 ? 'Strong candidate' : pct >= 55 ? 'Developing' : 'Needs practice';
+
+  const traits = [
+    { name: 'Systems thinking', score: STATE.phaseScores['seawolf'] || 0, max: 100, color: '#2ecc71', desc: 'Ability to map cause-effect relationships in complex ecosystems.' },
+    { name: 'Decision quality', score: STATE.phaseScores['plant'] || 0, max: 90, color: '#9b59b6', desc: 'Selecting the highest-leverage action under incomplete information.' },
+    { name: 'Numerical reasoning', score: STATE.phaseScores['redrock'] || 0, max: 100, color: '#e74c3c', desc: 'Extracting and calculating insights from structured data sets.' },
+    { name: 'Time management', score: Math.min(100, Math.round((1 - STATE.timeLeft / 100) * 80) + 20), max: 100, color: '#3d8eff', desc: 'Pace and efficiency across timed mini-game sequences.' }
+  ].filter(t => {
+    if (t.name === 'Systems thinking' && !STATE.phaseScores['seawolf']) return false;
+    if (t.name === 'Decision quality' && !STATE.phaseScores['plant']) return false;
+    if (t.name === 'Numerical reasoning' && !STATE.phaseScores['redrock']) return false;
+    return true;
+  });
+
+  document.getElementById('results-body').innerHTML = `
+    <div style="margin-bottom:1.5rem;">
+      <div class="results-title">Session complete</div>
+      <div class="results-sub">Here's your cognitive profile from this Solve simulation.</div>
+    </div>
+
+    <div class="score-breakdown">
+      <div class="score-tile">
+        <div class="score-tile-label">TOTAL SCORE</div>
+        <div class="score-tile-val ${tier}">${total}</div>
+      </div>
+      <div class="score-tile">
+        <div class="score-tile-label">ACCURACY</div>
+        <div class="score-tile-val ${tier}">${pct}%</div>
+      </div>
+      <div class="score-tile">
+        <div class="score-tile-label">RATING</div>
+        <div class="score-tile-val ${tier}" style="font-size:1.1rem;line-height:1.6">${tierLabel}</div>
+      </div>
+    </div>
+
+    <div class="trait-grid">
+      ${traits.map(t => {
+        const pctT = Math.round((t.score / t.max) * 100);
+        const tTier = pctT >= 80 ? '#2ecc71' : pctT >= 55 ? '#f5a623' : '#e74c3c';
+        return `
+          <div class="trait-card">
+            <div class="trait-name">${t.name}</div>
+            <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:${pctT}%;background:${t.color}"></div></div>
+            <div class="trait-desc">${t.desc} <strong style="color:${tTier}">${pctT}%</strong></div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1.5rem;text-align:left;">
+      <div class="section-label" style="margin-bottom:8px;">What to work on</div>
+      <div style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+        ${pct >= 80 ? '🟢 Strong performance. Focus on edge-case reasoning in plant defense and compound growth calculations in Redrock to push toward the top-tier scoring band.' :
+          pct >= 55 ? '🟡 Solid foundation. The biggest lever is <strong style="color:var(--text)">numerical reasoning</strong> — practice back-of-envelope calculations (CAGR, break-even) at speed. Also review food-chain classification rules for Sea Wolf.' :
+          '🔴 Prioritise <strong style="color:var(--text)">trophic levels</strong> (Sea Wolf) and <strong style="color:var(--text)">reading charts for dominant signals</strong> (Redrock). In plant defense, eliminate options by first principles, not intuition.'}
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn primary" onclick="startGame('${STATE.mode}')">Retry →</button>
+      <button class="btn" onclick="startGame('full')">Full simulation</button>
+      <button class="btn" onclick="showScreen('landing')">Change game</button>
+    </div>
+  `;
+
+  setTimeout(() => {
+    document.querySelectorAll('.trait-bar-fill').forEach(el => {
+      const w = el.style.width;
+      el.style.width = '0';
+      setTimeout(() => { el.style.width = w; el.style.transition = 'width 0.8s ease'; }, 100);
+    });
+  }, 200);
+}
+</script>
+</body>
+</html>
