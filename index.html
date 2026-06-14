@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urban Flood Response · Coastal City Marea</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #1D9E75;
+    --teal-light: #E1F5EE;
+    --teal-mid: #0F6E56;
+    --teal-dark: #085041;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --amber-mid: #EF9F27;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --gray-100: #F1EFE8;
+    --gray-200: #D3D1C7;
+    --gray-500: #5F5E5A;
+    --gray-800: #2C2C2A;
+    --bg: #f5f7f5;
+    --card-bg: #ffffff;
+    --text: #1a1a18;
+    --text-muted: #5F5E5A;
+    --radius: 16px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .site-header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .site-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--teal-mid);
+  }
+  .logo-dot {
+    width: 28px; height: 28px;
+    background: var(--teal);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-dot svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .header-meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-muted);
+  }
+  .badge-free {
+    background: var(--teal-light); color: var(--teal-dark);
+    padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  }
+
+  /* HERO BAND */
+  .hero-band {
+    background: linear-gradient(135deg, #0F6E56 0%, #085041 100%);
+    padding: 48px 24px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-band::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    border: 40px solid rgba(255,255,255,0.05);
+  }
+  .hero-band::after {
+    content: '';
+    position: absolute; bottom: -60px; left: 30%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 30px solid rgba(255,255,255,0.04);
+  }
+  .hero-inner { max-width: 680px; margin: 0 auto; position: relative; }
+  .hero-eyebrow {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55); font-weight: 500; margin-bottom: 12px;
+  }
+  .hero-title {
+    font-size: 28px; font-weight: 700; color: white;
+    line-height: 1.2; margin-bottom: 8px;
+  }
+  .hero-sub {
+    font-size: 13px; color: rgba(255,255,255,0.6);
+    margin-bottom: 20px;
+  }
+  .hero-desc {
+    font-size: 15px; color: rgba(255,255,255,0.85);
+    line-height: 1.65; max-width: 560px;
+  }
+  .hero-stats {
+    display: flex; gap: 24px; margin-top: 28px; flex-wrap: wrap;
+  }
+  .hero-stat { text-align: left; }
+  .hero-stat .val { font-size: 22px; font-weight: 700; color: #9FE1CB; }
+  .hero-stat .lbl { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: .08em; }
+
+  /* MAIN CONTENT */
+  .main { max-width: 680px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* SECTION BLOCKS */
+  .section-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    margin-top: 20px;
+    overflow: hidden;
+  }
+  .section-accent { border-left: 4px solid var(--teal); }
+  .section-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--teal); font-weight: 600; margin-bottom: 6px;
+  }
+  .section-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .section-body { padding: 20px 24px; }
+  .section-body p { color: var(--text-muted); line-height: 1.7; font-size: 14px; }
+  .section-body p + p { margin-top: 10px; }
+
+  /* MISSION INFO GRID */
+  .mission-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-top: 16px;
+  }
+  .mission-tile {
+    background: var(--gray-100); border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .mission-tile .mt-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+  .mission-tile .mt-val { font-size: 14px; font-weight: 600; color: var(--text); }
+
+  /* ROLES */
+  .roles-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .role-chip {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--teal-light);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--teal);
+  }
+  .role-icon {
+    width: 32px; height: 32px; background: var(--teal); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .role-icon svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .role-name { font-size: 13px; font-weight: 600; color: var(--teal-dark); }
+  .role-desc { font-size: 12px; color: var(--teal-mid); }
+
+  /* START BUTTON */
+  .start-wrap { padding: 0 24px 24px; }
+  .btn-start {
+    width: 100%; padding: 14px;
+    background: var(--teal); color: white;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-start:hover { background: var(--teal-mid); }
+
+  /* QUIZ SCREEN (hidden by default) */
+  #quiz-screen { display: none; }
+  #overview-screen { display: block; }
+
+  /* QUESTION PROGRESS */
+  .progress-bar-wrap { background: var(--card-bg); padding: 14px 24px; border-bottom: 1px solid var(--gray-200); }
+  .progress-bar-wrap .progress-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--text-muted); margin-bottom: 8px;
+  }
+  .progress-bar-track {
+    height: 4px; background: var(--gray-100); border-radius: 2px;
+  }
+  .progress-bar-fill {
+    height: 4px; background: var(--teal); border-radius: 2px;
+    transition: width .3s ease;
+  }
+  .q-type-badge {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 12px;
+  }
+  .badge-priority { background: var(--blue-light); color: var(--blue); }
+  .badge-uncertainty { background: var(--amber-light); color: var(--amber); }
+  .badge-messy { background: #fbeaf0; color: #993556; }
+  .badge-tradeoff { background: var(--red-light); color: var(--red); }
+  .badge-stakeholder { background: var(--teal-light); color: var(--teal-dark); }
+
+  /* QUESTION CARD */
+  .q-card {
+    background: var(--card-bg); border-radius: var(--radius);
+    border: 1px solid var(--gray-200); margin-top: 20px; padding: 24px;
+  }
+  .q-text { font-size: 16px; font-weight: 500; color: var(--text); line-height: 1.55; margin-bottom: 20px; }
+  .q-context {
+    background: var(--gray-100); border-radius: var(--radius-sm);
+    padding: 12px 16px; font-size: 13px; color: var(--text-muted);
+    margin-bottom: 20px; line-height: 1.6;
+  }
+  .q-context strong { color: var(--text); }
+
+  /* OPTIONS */
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    width: 100%; padding: 13px 16px; text-align: left;
+    background: var(--card-bg);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 14px; color: var(--text); cursor: pointer;
+    transition: border-color .15s, background .15s;
+    line-height: 1.5;
+  }
+  .option-btn:hover { border-color: var(--teal); background: var(--teal-light); }
+  .option-btn.selected { border-color: var(--teal); background: var(--teal-light); }
+  .option-btn.correct { border-color: var(--teal); background: var(--teal-light); color: var(--teal-dark); }
+  .option-btn.wrong { border-color: var(--red); background: var(--red-light); color: var(--red); }
+  .option-btn:disabled { cursor: default; }
+
+  /* DRAG AND DROP */
+  .drag-list {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .drag-item {
+    background: var(--card-bg);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    cursor: grab;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: var(--text);
+    transition: border-color .15s, box-shadow .15s;
+    user-select: none;
+  }
+  .drag-item:active { cursor: grabbing; }
+  .drag-item.dragging { opacity: .5; }
+  .drag-item.drag-over { border-color: var(--teal); box-shadow: 0 0 0 2px var(--teal-light); }
+  .drag-handle { color: var(--gray-200); flex-shrink: 0; }
+  .drag-rank {
+    width: 24px; height: 24px; background: var(--teal-light);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--teal-dark); flex-shrink: 0;
+  }
+
+  /* SLIDER QUESTION */
+  .slider-container { margin: 12px 0; }
+  .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  input[type=range] {
+    width: 100%; accent-color: var(--teal);
+  }
+  .slider-val {
+    text-align: center; font-size: 22px; font-weight: 700;
+    color: var(--teal); margin: 8px 0;
+  }
+
+  /* MATRIX / TABLE QUESTION */
+  .data-table {
+    width: 100%; font-size: 13px; border-collapse: collapse; margin-bottom: 16px;
+  }
+  .data-table th {
+    background: var(--gray-100); padding: 8px 12px;
+    text-align: left; font-weight: 600; font-size: 12px;
+    color: var(--text-muted); border-bottom: 1px solid var(--gray-200);
+  }
+  .data-table td {
+    padding: 8px 12px; border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .flag-red { color: var(--red); font-weight: 600; }
+  .flag-amber { color: var(--amber); font-weight: 600; }
+  .flag-green { color: var(--teal-mid); font-weight: 600; }
+
+  /* FEEDBACK BOX */
+  .feedback-box {
+    margin-top: 16px; padding: 14px 16px;
+    border-radius: var(--radius-sm); font-size: 13px; line-height: 1.6;
+    display: none;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-correct { background: var(--teal-light); color: var(--teal-dark); border-left: 3px solid var(--teal); }
+  .feedback-wrong { background: var(--red-light); color: var(--red); border-left: 3px solid var(--red); }
+  .feedback-partial { background: var(--amber-light); color: var(--amber); border-left: 3px solid var(--amber-mid); }
+
+  /* NAV BUTTONS */
+  .q-nav { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-submit {
+    flex: 1; padding: 12px;
+    background: var(--teal); color: white;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-submit:hover { background: var(--teal-mid); }
+  .btn-submit:disabled { background: var(--gray-200); cursor: default; color: var(--text-muted); }
+  .btn-next {
+    flex: 1; padding: 12px;
+    background: white; color: var(--text);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: border-color .15s;
+    display: none;
+  }
+  .btn-next:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* RESULTS */
+  #results-screen { display: none; padding-bottom: 40px; }
+  .results-hero {
+    background: linear-gradient(135deg, #0F6E56 0%, #085041 100%);
+    border-radius: var(--radius);
+    padding: 32px 24px; text-align: center; margin-top: 20px;
+  }
+  .results-score { font-size: 56px; font-weight: 800; color: #9FE1CB; line-height: 1; }
+  .results-label { font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+  .results-title { font-size: 20px; font-weight: 600; color: white; margin-top: 12px; }
+  .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .breakdown-tile {
+    background: var(--card-bg); border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+  }
+  .breakdown-tile .bt-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+  .breakdown-tile .bt-score { font-size: 20px; font-weight: 700; color: var(--teal); }
+  .btn-restart {
+    width: 100%; margin-top: 20px; padding: 14px;
+    background: var(--teal); color: white;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .btn-restart:hover { background: var(--teal-mid); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">
+    <div class="logo-dot">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/><circle cx="12" cy="12" r="9"/></svg>
+    </div>
+    EcoMission
+  </div>
+  <div class="header-meta">
+    <span>Coastal City Marea</span>
+    <span class="badge-free">Free</span>
+  </div>
+</header>
+
+<div id="overview-screen">
+  <div class="hero-band">
+    <div class="hero-inner">
+      <p class="hero-eyebrow">Mission 01 · Urban Systems</p>
+      <h1 class="hero-title">Urban Flood Response</h1>
+      <p class="hero-sub">Coastal City Marea · 20 min · 13 questions</p>
+      <p class="hero-desc">Storm season begins in 60 days. Navigate budget constraints, community trust, and conflicting data to deliver flood interventions before the deadline.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="val">60</div>
+          <div class="lbl">Days to storm season</div>
+        </div>
+        <div class="hero-stat">
+          <div class="val">€2.4M</div>
+          <div class="lbl">Emergency budget</div>
+        </div>
+        <div class="hero-stat">
+          <div class="val">47k</div>
+          <div class="lbl">Residents at risk</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="section-card section-accent">
+      <div class="section-header">
+        <div class="section-label">Ecological context</div>
+        <div class="section-title">What's happening to Coastal City Marea</div>
+      </div>
+      <div class="section-body">
+        <p>Coastal City Marea sits at the mouth of the Verea River delta. Over the past decade, upstream deforestation has accelerated runoff, while rising sea levels have reduced the delta's natural drainage capacity by an estimated 38%.</p>
+        <p>Three consecutive drought years followed by extreme precipitation events have overwhelmed aging stormwater infrastructure. The city's Canal District — home to 47,000 residents and its historic market — sits 1.2 metres below projected flood peaks.</p>
+        <p>Climate models give a 73% probability of a Category 2 flood event in the coming storm season. Without intervention, estimated economic damage exceeds €180 million and habitat loss across the delta wetlands would eliminate nesting grounds for 12 protected bird species.</p>
+        <div class="q-context" style="margin-top:16px;">
+          <strong>Key threat factors:</strong> accelerated upstream runoff · degraded wetland buffers · undersized drainage channels built for 1970s rainfall patterns · a community that has lost trust in government promises after two failed projects
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card section-accent">
+      <div class="section-header">
+        <div class="section-label">Your mission</div>
+        <div class="section-title">What you and your team must do</div>
+      </div>
+      <div class="section-body">
+        <p>You are the newly appointed Emergency Flood Coordinator for the Marea Metropolitan Authority. You have 60 days and a €2.4 million emergency budget to design and execute a flood response strategy before storm season begins.</p>
+        <p>Your mandate is not just engineering — you must balance community trust, limited resources, ecological protection, and political pressure. Not every intervention is affordable, not every stakeholder agrees, and some data you receive is incomplete or contradictory.</p>
+        <div class="mission-grid">
+          <div class="mission-tile">
+            <div class="mt-label">Time window</div>
+            <div class="mt-val">60 days hard deadline</div>
+          </div>
+          <div class="mission-tile">
+            <div class="mt-label">Budget</div>
+            <div class="mt-val">€2.4M emergency fund</div>
+          </div>
+          <div class="mission-tile">
+            <div class="mt-label">Residents at risk</div>
+            <div class="mt-val">47,000 in Canal District</div>
+          </div>
+          <div class="mission-tile">
+            <div class="mt-label">Success measure</div>
+            <div class="mt-val">Flood damage below €5M</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-label">Your team</div>
+        <div class="section-title">Specialists assigned to this mission</div>
+      </div>
+      <div class="section-body">
+        <div class="roles-list">
+          <div class="role-chip">
+            <div class="role-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+            </div>
+            <div>
+              <div class="role-name">You — Emergency Flood Coordinator</div>
+              <div class="role-desc">Final call on strategy, budget, and stakeholder decisions</div>
+            </div>
+          </div>
+          <div class="role-chip">
+            <div class="role-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div class="role-name">Dr. Selin Yıldız — Hydrology Lead</div>
+              <div class="role-desc">Flood modelling, rainfall data interpretation, drainage assessment</div>
+            </div>
+          </div>
+          <div class="role-chip">
+            <div class="role-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            </div>
+            <div>
+              <div class="role-name">Marcus Frei — Community Liaison</div>
+              <div class="role-desc">Local trust, resident consultation, public communications</div>
+            </div>
+          </div>
+          <div class="role-chip">
+            <div class="role-icon">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+              <div class="role-name">Ana Robles — Budget Controller</div>
+              <div class="role-desc">Cost tracking, procurement, financial trade-off analysis</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card" style="border: none; background: none; box-shadow: none;">
+      <div class="start-wrap">
+        <button class="btn-start" onclick="startQuiz()">Begin mission →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="quiz-screen">
+  <div class="progress-bar-wrap">
+    <div class="progress-meta">
+      <span id="q-counter">Question 1 of 13</span>
+      <span id="q-score-live">Score: 0</span>
+    </div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="q-card" id="question-container"></div>
+    <div class="q-nav">
+      <button class="btn-submit" id="btn-submit" onclick="submitAnswer()">Submit answer</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<div id="results-screen">
+  <div class="main">
+    <div class="results-hero">
+      <div class="results-score" id="final-score">0/13</div>
+      <div class="results-label">questions answered correctly</div>
+      <div class="results-title" id="results-title">Mission complete</div>
+    </div>
+    <div class="breakdown-grid" id="breakdown-grid"></div>
+    <button class="btn-restart" onclick="restartQuiz()">Restart mission ↺</button>
+  </div>
+</div>
+
+<script src="mission_quiz.js"></script>
+</body>
+</html>
