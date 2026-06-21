@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration & System Test Crash Course</title>
+    <style>
+        :root {
+            --primary-color: #009999; /* Siemens-esque teal */
+            --secondary-color: #2c3e50;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+        h1, h2, h3 {
+            color: var(--secondary-color);
+        }
+        header h1 {
+            color: white;
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .module {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+        .concept-box {
+            background: #eef7f7;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Network System Test Crash Course</h1>
+    <p>Targeted prep for high-performance automation & Industry 4.0 testing.</p>
+</header>
+
+<div class="container">
+
+    <!-- MODULE 1 -->
+    <div class="module">
+        <h2>Module 1: Network Fundamentals (LAN/WAN/WLAN)</h2>
+        <p>Testing hardware in Industry 4.0 requires a solid grasp of how devices communicate. As a system engineer, you'll need to verify that network traffic routes correctly under various industrial loads.</p>
+        
+        <h3>Core Architectures</h3>
+        <ul>
+            <li><strong>LAN (Local Area Network):</strong> The foundation of factory floor automation. High speed, low latency. Devices are usually connected via Ethernet.</li>
+            <li><strong>WLAN (Wireless LAN):</strong> Crucial for mobile industrial robots and IoT sensors. Testing here often involves signal integrity, handover between access points, and interference.</li>
+            <li><strong>WAN (Wide Area Network):</strong> Connects different factory sites or connects local edge devices to the cloud. Testing focuses on VPNs, secure routing, and handling higher latency/packet loss.</li>
+        </ul>
+
+        <h3>Hardware Under Test</h3>
+        <div class="concept-box">
+            <strong>Switches vs. Routers:</strong>
+            <p><strong>Switches (Layer 2):</strong> Connect devices within the <em>same</em> network (LAN). They use MAC addresses to forward data only to the device that needs it. In an industrial setting, these must often support protocols like PROFINET.</p>
+            <p><strong>Routers (Layer 3):</strong> Connect <em>different</em> networks together (e.g., passing data from the factory LAN to the corporate WAN). They use IP addresses to route traffic efficiently.</p>
+        </div>
+    </div>
+
+    <!-- MODULE 2 -->
+    <div class="module">
+        <h2>Module 2: The Software Testing Life Cycle (STLC)</h2>
+        <p>Transitioning standard quality assurance and requirement-based methodologies into the realm of network components follows a strict lifecycle. Familiar tools like JIRA for defect tracking tie directly into these phases.</p>
+        
+        <ol>
+            <li><strong>Requirement Analysis:</strong> Understanding the technical and functional specs of the Siemens network gear.</li>
+            <li><strong>Test Planning:</strong> Defining the scope, resources, and schedule.</li>
+            <li><strong>Test Case Creation:</strong> Writing reproducible steps to validate features (e.g., "Verify switch drops packets exceeding configured MTU").</li>
+            <li><strong>Test Environment Setup:</strong> Physically and logically building the network topology (cabling switches/routers, configuring subnets, setting up traffic generators).</li>
+            <li><strong>Test Execution:</strong> Running functional (does it work?) and technical (does it perform under load?) tests.</li>
+            <li><strong>Defect Tracking & Documentation:</strong> Logging bugs with precise reproduction steps, logs, and network captures (PCAPs).</li>
+            <li><strong>Reporting:</strong> Generating comprehensive test reports for stakeholders.</li>
+        </ol>
+    </div>
+
+    <!-- MODULE 3 -->
+    <div class="module">
+        <h2>Module 3: Test Automation & Scripting</h2>
+        <p>Manual testing is insufficient for complex, iterative network environments. Process optimization relies heavily on automation.</p>
+        <ul>
+            <li><strong>Python:</strong> The undisputed king of network automation. Libraries like <code>Netmiko</code>, <code>NAPALM</code>, or <code>Paramiko</code> are used to SSH into switches/routers, push configurations, and parse the output to verify states.</li>
+            <li><strong>Bash:</strong> Essential for quick, OS-level scripting on Linux-based test servers (e.g., running continuous ping oriperf tests to simulate traffic).</li>
+            <li><strong>Selenium:</strong> While traditionally a web-testing tool, network devices usually have web-based GUIs (management interfaces). Selenium automates clicking through these interfaces to ensure the management dashboard functions correctly.</li>
+        </ul>
+    </div>
+
+    <!-- GLOSSARY -->
+    <div class="module">
+        <h2>Glossary of Relevant Terms</h2>
+        <table>
+            <tr>
+                <th>Term</th>
+                <th>Definition in Context</th>
+            </tr>
+            <tr>
+                <td><strong>Industrie 4.0</strong></td>
+                <td>The Fourth Industrial Revolution. Refers to smart factories, IoT, and interconnected manufacturing systems that rely heavily on robust, high-performance networking.</td>
+            </tr>
+            <tr>
+                <td><strong>Systemtest</strong></td>
+                <td>Testing a completely integrated system to evaluate its compliance with specified requirements. In this context, testing the network switch as a whole, not just its individual software modules.</td>
+            </tr>
+            <tr>
+                <td><strong>Testumgebung</strong></td>
+                <td>Test Environment. The hardware, software, network configurations, and test data required to execute test cases.</td>
+            </tr>
+            <tr>
+                <td><strong>Functional Testing</strong></td>
+                <td>Testing that validates the system against functional requirements (e.g., "Does the router successfully block traffic when a firewall rule is applied?").</td>
+            </tr>
+            <tr>
+                <td><strong>Technical Testing</strong></td>
+                <td>Testing non-functional aspects, often performance, stress, or security (e.g., "What happens to the switch when hit with 10 gigabits of broadcast traffic?").</td>
+            </tr>
+            <tr>
+                <td><strong>Debugging (Fehlersuche)</strong></td>
+                <td>The process of identifying the root cause of a defect. In networking, this often involves analyzing packet captures (using Wireshark) and checking device logs.</td>
+            </tr>
+            <tr>
+                <td><strong>Test-Framework</strong></td>
+                <td>A set of guidelines or rules used for creating and designing test cases (e.g., PyTest for Python). It provides a structured way to execute automated tests and generate reports.</td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
