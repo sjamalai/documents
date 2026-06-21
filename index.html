@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systemtester Prep — Siemens Karlsruhe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1D1F;
+    --panel:#222428;
+    --panel-raised:#2A2D31;
+    --line:#3A3D42;
+    --line-soft:#2F3236;
+    --text:#ECEDEE;
+    --muted:#8B9097;
+    --green:#5FA776;
+    --green-glow:#8FE3B0;
+    --amber:#E8A33D;
+    --amber-glow:#FFD27A;
+    --red:#D4574A;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --display:'Big Shoulders',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background-color:var(--bg);
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size:28px 28px;
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  *:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+  a{color:var(--amber);}
+
+  /* ---------- Header strip ---------- */
+  header.strip{
+    position:sticky; top:0; z-index:20;
+    background:rgba(27,29,31,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 22px; gap:16px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand .lamp{
+    width:14px; height:14px; border-radius:50%;
+    background:var(--amber); box-shadow:0 0 10px 2px var(--amber-glow);
+    flex-shrink:0;
+  }
+  .brand h1{
+    font-family:var(--display); font-weight:800; letter-spacing:0.03em;
+    font-size:20px; text-transform:uppercase; margin:0; line-height:1;
+  }
+  .brand .sub{
+    font-family:var(--mono); font-size:11px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.05em; margin-top:3px;
+  }
+  .readout{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--mono); font-size:12px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .segbar{display:flex; gap:4px;}
+  .seg{width:16px; height:8px; border-radius:1px; background:#3A3D42; transition:background .25s;}
+  .seg.on-complete{background:var(--green); box-shadow:0 0 6px var(--green-glow);}
+  .seg.on-partial{background:var(--amber); box-shadow:0 0 6px var(--amber-glow);}
+
+  /* ---------- Layout ---------- */
+  .layout{display:flex; max-width:1180px; margin:0 auto; min-height:calc(100vh - 64px);}
+  nav.rack{
+    width:240px; flex-shrink:0; padding:20px 12px;
+    border-right:1px solid var(--line);
+    position:sticky; top:65px; align-self:flex-start;
+    height:fit-content;
+  }
+  .rack-label{
+    font-family:var(--mono); font-size:10px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.12em; padding:0 10px 10px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:10px; width:100%;
+    background:transparent; border:1px solid transparent; border-radius:3px;
+    padding:9px 10px; margin-bottom:3px; cursor:pointer; text-align:left;
+    color:var(--muted); font-family:var(--sans); font-size:13.5px;
+  }
+  .nav-item:hover{background:var(--panel-raised); color:var(--text);}
+  .nav-item.active{
+    background:var(--panel-raised); color:var(--text);
+    border-color:var(--line); border-left:3px solid var(--amber);
+  }
+  .nav-item .num{font-family:var(--mono); font-size:11px; color:var(--muted); width:18px; flex-shrink:0;}
+  .led{
+    width:8px; height:8px; border-radius:50%; flex-shrink:0;
+    background:#46484C; transition:background .25s, box-shadow .25s;
+  }
+  .led.partial{background:var(--amber); box-shadow:0 0 6px var(--amber-glow); animation:pulse 1.8s ease-in-out infinite;}
+  .led.complete{background:var(--green); box-shadow:0 0 7px var(--green-glow);}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.45;}}
+  @media (prefers-reduced-motion: reduce){ .led.partial{animation:none;} }
+
+  main#content{flex:1; padding:30px 32px 80px; min-width:0;}
+  section.module{display:none;}
+  section.module.active{display:block; animation:fadein .35s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .mod-head{display:flex; align-items:baseline; gap:14px; margin-bottom:6px;}
+  .mod-head .big-num{font-family:var(--display); font-weight:800; font-size:46px; color:var(--amber); line-height:1;}
+  .mod-head h2{font-family:var(--display); font-weight:700; font-size:26px; text-transform:uppercase; letter-spacing:0.01em; margin:0;}
+  .mod-meta{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:18px;}
+  hr.rule{border:none; border-top:1px solid var(--line); margin:18px 0 22px;}
+  p.intro{max-width:640px; line-height:1.65; color:#D7D8DA; font-size:15px; margin-bottom:24px;}
+
+  .spec-sheet{border-top:1px solid var(--line); margin-bottom:28px;}
+  .spec-row{display:grid; grid-template-columns:160px 1fr; gap:18px; padding:11px 0; border-bottom:1px solid var(--line-soft);}
+  .spec-row .term{font-family:var(--mono); font-size:12.5px; color:var(--amber); padding-top:1px;}
+  .spec-row .def{font-size:14px; line-height:1.55; color:#D7D8DA;}
+
+  .fig{
+    border:1px solid var(--line); background:var(--panel); border-radius:4px;
+    padding:18px 16px 10px; margin-bottom:28px;
+  }
+  .fig svg{width:100%; height:auto; display:block;}
+  .fig-cap{font-family:var(--mono); font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:8px;}
+
+  .diag{background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:20px;}
+  .diag-head{display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px;}
+  .diag-head h3{font-family:var(--display); font-weight:700; font-size:16px; text-transform:uppercase; letter-spacing:0.04em; margin:0;}
+  .diag-sub{font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:18px;}
+
+  .q-block{margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--line-soft);}
+  .q-block:last-of-type{border-bottom:none;}
+  .q-text{font-size:14.5px; margin-bottom:10px; color:var(--text);}
+  .q-text .qn{font-family:var(--mono); color:var(--muted); margin-right:6px;}
+  label.option{
+    display:flex; align-items:center; gap:10px; padding:9px 12px;
+    border:1px solid var(--line); border-radius:3px; margin-bottom:6px;
+    cursor:pointer; font-size:13.5px; background:var(--panel-raised);
+  }
+  label.option input{accent-color:var(--amber); width:15px; height:15px; flex-shrink:0;}
+  label.option:hover{border-color:var(--muted);}
+  label.option.is-correct{border-color:var(--green); background:rgba(95,167,118,0.10);}
+  label.option.is-wrong{border-color:var(--red); background:rgba(212,87,74,0.10);}
+  .explain{
+    display:none; font-family:var(--mono); font-size:12px; line-height:1.6;
+    color:var(--muted); border-left:2px solid var(--line); padding:8px 12px; margin-top:4px;
+  }
+  .explain.show{display:block;}
+
+  .btn{
+    font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:0.08em;
+    background:var(--amber); color:#1B1D1F; border:none; border-radius:3px;
+    padding:11px 20px; cursor:pointer; box-shadow:0 2px 0 rgba(0,0,0,0.3);
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line); box-shadow:none;}
+  .result-row{display:flex; align-items:center; gap:14px; margin-top:16px; flex-wrap:wrap;}
+  .result-text{font-family:var(--mono); font-size:13px; text-transform:uppercase; letter-spacing:0.05em;}
+  .result-text.pass{color:var(--green);}
+  .result-text.partial{color:var(--amber);}
+
+  /* briefing */
+  .brief-row{display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;}
+  .brief-row .req{color:#D7D8DA;}
+  .brief-row .arrow{color:var(--muted); font-family:var(--mono);}
+  .brief-row .mod-link{font-family:var(--mono); font-size:11.5px; color:var(--amber); cursor:pointer; text-decoration:underline; background:none; border:none; padding:0; text-align:left;}
+
+  /* glossary */
+  #glossary-search{
+    width:100%; max-width:340px; background:var(--panel-raised); border:1px solid var(--line);
+    color:var(--text); font-family:var(--mono); font-size:13px; padding:10px 12px; border-radius:3px;
+    margin-bottom:18px;
+  }
+  .gloss-row{display:grid; grid-template-columns:120px 1fr; gap:18px; padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;}
+  .gloss-row .term{font-family:var(--mono); color:var(--amber);}
+  .gloss-row .def{color:#D7D8DA; line-height:1.5;}
+  .gloss-empty{color:var(--muted); font-family:var(--mono); font-size:12px; padding:14px 0;}
+
+  footer{
+    font-family:var(--mono); font-size:10.5px; color:var(--muted);
+    text-align:center; padding:30px 20px 50px; max-width:1180px; margin:0 auto;
+  }
+
+  @media (max-width:860px){
+    .layout{flex-direction:column;}
+    nav.rack{
+      width:100%; position:sticky; top:64px; height:auto;
+      display:flex; overflow-x:auto; gap:6px; padding:12px 14px;
+      border-right:none; border-bottom:1px solid var(--line);
+      background:var(--bg);
+    }
+    .rack-label{display:none;}
+    .nav-item{flex-shrink:0; width:auto; white-space:nowrap; margin-bottom:0;}
+    .nav-item.active{border-left:1px solid var(--line); border-bottom:2px solid var(--amber);}
+    main#content{padding:24px 18px 60px;}
+    .spec-row{grid-template-columns:1fr;}
+    .gloss-row{grid-template-columns:1fr;}
+    .mod-head .big-num{font-size:36px;}
+    .mod-head h2{font-size:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="strip">
+  <div class="brand">
+    <div class="lamp" id="headerLamp"></div>
+    <div>
+      <h1>Systemtester Prep</h1>
+      <div class="sub">Siemens AG · Karlsruhe · Industrielle Kommunikationsprodukte</div>
+    </div>
+  </div>
+  <div class="readout">
+    <span id="readoutText">0 / 5 SYSTEMS VERIFIED</span>
+    <div class="segbar" id="segbar"></div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="rack" id="nav" aria-label="Module selector">
+    <div class="rack-label">Module Rack</div>
+  </nav>
+  <main id="content"></main>
+</div>
+
+<footer>
+  Built from the posting for Kennziffer LI58-19275-KAIT — a study aid, not affiliated with or endorsed by Siemens AG. Progress is stored only in your browser.
+</footer>
+
+<script>
+/* ============== DATA ============== */
+
+const MODULES = [
+  {
+    id:'brief', num:'00', title:'Briefing', type:'briefing', scored:false,
+    intro:`This posting asks for one tester who can move across four layers at once: the controller itself, the network it talks over, the sensors that identify physical parts, and the automation harness that proves all of it keeps working release after release. The five modules below are organised around that stack, lowest level first. Work through them in order, or jump straight to the gap you feel least sure about.`,
+    rows:[
+      ['S7-Steuerungen, S7-CP, STEP7 (Classic, TIA Portal)', 'plc', '01 · S7 & STEP7'],
+      ['Industrial Ethernet, PROFINET IO, TCP/IP, SNMP, Switching L2/3', 'net', '02 · Networking'],
+      ['SIMATIC Ident, Machine Vision', 'ident', '03 · Ident & Vision'],
+      ['C#, JavaScript, Python · WebdriverIO, Selenium, CUIT', 'auto', '04 · Test Automation'],
+      ['Testpläne, Testfall-Listen, Fehlermeldungen/TFS, ISTQB', 'qa', '05 · QA & ISTQB'],
+    ]
+  },
+  {
+    id:'plc', num:'01', title:'S7 & STEP7', type:'standard', scored:true,
+    meta:'Controller layer',
+    intro:`The S7 family is Siemens' line of PLCs (S7-300/400/1200/1500) — the boxes that actually run the control logic on the factory floor. An S7-CP is a separate communication-processor module slotted into the rack so the CPU isn't burdened with network traffic. STEP7 and TIA Portal are the engineering tools used to configure and program these controllers; you'll be exercising them to set up realistic test rigs, not writing production control logic.`,
+    specs:[
+      ['PLC', 'Programmable Logic Controller — the hardware that executes the control program against real I/O.'],
+      ['S7-CP', 'Communication Processor module added to an S7 rack to handle network protocols (Ethernet/PROFIBUS/PROFINET) separately from the CPU.'],
+      ['STEP7 Classic', 'Older engineering software, mainly used for the S7-300/400 family.'],
+      ['TIA Portal', 'Totally Integrated Automation Portal — Siemens’ unified engineering environment covering S7-1200/1500 (and newer S7-300/400 projects too).'],
+      ['LAD / FBD / STL', 'The three classic representations for S7 logic: Ladder, Function Block Diagram, Statement List.'],
+    ],
+    diagram:{
+      cap:'Fig. 01 — a minimal S7 rack with a communication processor',
+      svg:`<svg viewBox="0 0 600 170" xmlns="http://www.w3.org/2000/svg">
+        <line x1="40" y1="140" x2="560" y2="140" stroke="#3A3D42" stroke-width="2"/>
+        <g font-family="IBM Plex Mono" font-size="10" fill="#8B9097" text-anchor="middle">
+          <rect x="40" y="50" width="70" height="90" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+          <text x="75" y="155">PS</text>
+          <rect x="130" y="50" width="90" height="90" fill="none" stroke="#ECEDEE" stroke-width="1.5"/>
+          <text x="175" y="155">CPU</text>
+          <rect x="240" y="50" width="90" height="90" fill="none" stroke="#E8A33D" stroke-width="2"/>
+          <text x="285" y="155" fill="#E8A33D">S7-CP</text>
+          <rect x="350" y="50" width="90" height="90" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+          <text x="395" y="155">I/O</text>
+        </g>
+        <line x1="285" y1="50" x2="285" y2="20" stroke="#E8A33D" stroke-width="2"/>
+        <line x1="285" y1="20" x2="540" y2="20" stroke="#E8A33D" stroke-width="2"/>
+        <circle cx="540" cy="20" r="5" fill="#E8A33D"/>
+        <text x="490" y="14" font-family="IBM Plex Mono" font-size="10" fill="#E8A33D">to network</text>
+      </svg>`
+    },
+    quiz:[
+      {q:'What does the "S7-CP" module actually do in the rack?', options:['Acts as the central processing unit (CPU)','Provides network communication so the CPU isn’t burdened with traffic','Supplies regulated power to the rack','Stores the HMI screen layouts'], correct:1, explain:'The CP is a dedicated communication processor — it handles the network protocol stack so the CPU keeps cycling control logic on time.'},
+      {q:'How do STEP7 Classic and TIA Portal actually relate?', options:['They are unrelated, competing vendors’ tools','STEP7 Classic only works on S7-1200/1500','TIA Portal is the newer unified environment; STEP7 Classic is the older tool mainly for S7-300/400','TIA Portal cannot run on a normal PC'], correct:2, explain:'TIA Portal absorbed and extended STEP7’s role, adding native support for the newer S7-1200/1500 families alongside the older ones.'},
+      {q:'Which of these is NOT a standard way to represent S7 control logic?', options:['Ladder Logic (LAD)','Statement List (STL)','Function Block Diagram (FBD)','WebDriver Protocol (WDP)'], correct:3, explain:'WebDriver Protocol belongs to browser test automation (Selenium/WebdriverIO), not PLC programming.'},
+      {q:'As a tester, not a control engineer, why does S7/STEP7 fluency matter?', options:['It doesn’t — testers only check the enclosure','It lets you configure realistic rigs, read communication behaviour, and reproduce defects precisely','It’s required purely for safety paperwork','Only the development team ever opens the engineering tool'], correct:1, explain:'You need enough fluency in the controller and its tool to set up believable test conditions and describe a defect the way a developer can act on.'},
+    ]
+  },
+  {
+    id:'net', num:'02', title:'Networking', type:'standard', scored:true,
+    meta:'Communication layer',
+    intro:`Once the controller is in place, the posting wants Industrial Ethernet, PROFINET IO, TCP/IP, SNMP and managed switching at Layer 2/3. These all sit on top of each other: Industrial Ethernet is the ruggedised physical layer, PROFINET IO is the real-time protocol that runs over it, TCP/IP carries the non-time-critical engineering traffic alongside it, SNMP lets you monitor the switches themselves, and Layer 2/3 features keep the network resilient when a cable gets unplugged on a moving line.`,
+    specs:[
+      ['Industrial Ethernet', 'A ruggedised variant of standard Ethernet (connectors, EMI hardening, determinism) built for the factory floor rather than the office.'],
+      ['PROFINET IO', 'The dominant industrial Ethernet fieldbus from PI; roles include IO-Controller (the PLC), IO-Device (sensor/actuator), and IO-Supervisor (engineering tool).'],
+      ['GSDML', 'The XML file a PROFINET device ships with, describing its capabilities to the engineering tool.'],
+      ['RT / IRT', 'PROFINET’s real-time classes — RT for standard real-time, IRT (isochronous) for the tight timing motion control needs.'],
+      ['SNMP', 'Simple Network Management Protocol — monitors/manages devices via a manager–agent model, MIBs, and traps.'],
+      ['MRP / RSTP', 'Redundancy protocols for ring/meshed industrial networks, so a single break doesn’t take the line down.'],
+    ],
+    diagram:{
+      cap:'Fig. 02 — PLC, managed switch, and field devices in a redundant ring',
+      svg:`<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="IBM Plex Mono" font-size="10" fill="#8B9097" text-anchor="middle">
+          <rect x="255" y="15" width="90" height="45" fill="none" stroke="#ECEDEE" stroke-width="1.5"/>
+          <text x="300" y="42">PLC</text>
+          <rect x="245" y="90" width="110" height="40" fill="none" stroke="#E8A33D" stroke-width="2"/>
+          <text x="300" y="115" fill="#E8A33D">SWITCH</text>
+          <rect x="60" y="170" width="100" height="40" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+          <text x="110" y="195">SENSOR</text>
+          <rect x="250" y="170" width="100" height="40" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+          <text x="300" y="195">IDENT</text>
+          <rect x="440" y="170" width="100" height="40" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+          <text x="490" y="195">CAMERA</text>
+        </g>
+        <line x1="300" y1="60" x2="300" y2="90" stroke="#ECEDEE" stroke-width="2"/>
+        <path d="M110 170 V145 H490 V170" fill="none" stroke="#5FA776" stroke-width="2" stroke-dasharray="5 4"/>
+        <line x1="300" y1="130" x2="300" y2="170" stroke="#E8A33D" stroke-width="2"/>
+        <text x="490" y="138" font-family="IBM Plex Mono" font-size="9" fill="#5FA776">MRP ring</text>
+      </svg>`
+    },
+    quiz:[
+      {q:'What does PROFINET’s "IO-Controller" role usually correspond to?', options:['A raw field sensor','The PLC that exchanges process data with IO-Devices in real time','A cloud monitoring dashboard','An SNMP trap receiver only'], correct:1, explain:'The IO-Controller is the active side of the exchange — almost always the PLC.'},
+      {q:'What does a GSDML file describe?', options:['A device’s capabilities, for the PROFINET engineering tool','A PLC’s ladder logic program','An SNMP MIB tree','A test automation script'], correct:0, explain:'GSDML is the device description PROFINET devices ship with so engineering tools know how to configure them.'},
+      {q:'What is SNMP mainly used for here?', options:['Encrypting PROFINET real-time traffic','Monitoring/managing network devices via a manager-agent model with MIBs and traps','Replacing TCP/IP entirely','Writing PLC control logic'], correct:1, explain:'SNMP is a network-management protocol — it watches switches and devices, not the control logic itself.'},
+      {q:'Why would a factory network use a ring topology with MRP?', options:['To intentionally add latency','So the network recovers quickly from a single cable or switch failure','To assign IP addresses automatically','To convert PROFINET traffic into PROFIBUS'], correct:1, explain:'A ring plus a redundancy protocol means one broken link doesn’t take the whole segment offline — critical when downtime stops a line.'},
+    ]
+  },
+  {
+    id:'ident', num:'03', title:'Ident & Vision', type:'standard', scored:true,
+    meta:'Sensing layer',
+    intro:`SIMATIC Ident covers Siemens' identification hardware — RFID readers and optical code readers that track parts as they move through production. Machine Vision adds image-based inspection: smart cameras checking presence, position, or printed text on a part. As a tester, the interesting cases are rarely the clean reads; they're the misreads, the timing against the conveyor, and how cleanly a failure gets reported back to the controller.`,
+    specs:[
+      ['SIMATIC Ident', 'Siemens’ product family for industrial identification — RFID (HF/UHF) and optical code (barcode/2D) readers.'],
+      ['RFID', 'Identification via radio tags; doesn’t need precise line-of-sight and can carry more data than a printed code.'],
+      ['Optical code reading', 'Barcode/2D code readers that need a clear, well-lit, correctly oriented view of the code.'],
+      ['Machine Vision', 'Smart cameras performing presence checks, pattern matching, or measurement on parts moving through a line.'],
+      ['OCR', 'Optical Character Recognition — reading printed text or codes directly off a part or its packaging.'],
+    ],
+    diagram:{
+      cap:'Fig. 03 — identification and vision stations on a conveyor',
+      svg:`<svg viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg">
+        <line x1="30" y1="110" x2="570" y2="110" stroke="#ECEDEE" stroke-width="2"/>
+        <path d="M560 102 L575 110 L560 118 Z" fill="#ECEDEE"/>
+        <rect x="120" y="96" width="26" height="26" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+        <g font-family="IBM Plex Mono" font-size="10" fill="#8B9097" text-anchor="middle">
+          <path d="M180 75 L210 40 L240 75" fill="none" stroke="#E8A33D" stroke-width="2"/>
+          <text x="210" y="30" fill="#E8A33D">RFID</text>
+          <rect x="360" y="35" width="40" height="28" rx="3" fill="none" stroke="#5FA776" stroke-width="2"/>
+          <circle cx="380" cy="49" r="7" fill="none" stroke="#5FA776" stroke-width="2"/>
+          <text x="380" y="22" fill="#5FA776">CAMERA</text>
+          <text x="60" y="135">FLOW &#8594;</text>
+        </g>
+        <line x1="210" y1="75" x2="210" y2="110" stroke="#E8A33D" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <line x1="380" y1="63" x2="380" y2="110" stroke="#5FA776" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <line x1="210" y1="110" x2="210" y2="140" stroke="#3A3D42" stroke-width="1.5"/>
+        <line x1="380" y1="110" x2="380" y2="140" stroke="#3A3D42" stroke-width="1.5"/>
+        <line x1="210" y1="140" x2="380" y2="140" stroke="#3A3D42" stroke-width="1.5"/>
+        <rect x="265" y="128" width="60" height="24" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+        <text x="295" y="144" font-family="IBM Plex Mono" font-size="9" fill="#8B9097" text-anchor="middle">PLC</text>
+      </svg>`
+    },
+    quiz:[
+      {q:'What’s a key practical difference between RFID and a barcode reader?', options:['RFID needs direct line of sight; barcodes don’t','RFID tags can often be read without precise orientation and can carry more data; barcodes need a clear optical path','They’re the same technology under a different name','Barcode readers are exclusive to SIMATIC Ident'], correct:1, explain:'RFID trades the need for a clean optical line of sight for radio reads, often at the cost of more interference-prone reads at range.'},
+      {q:'In a quality-inspection vision system, what does "pattern matching" check?', options:['Network latency on the switch','Whether the captured image matches a reference pattern, e.g. correct part placement','PLC memory usage','SNMP trap delivery'], correct:1, explain:'Pattern matching compares the live image against a known-good reference to flag deviations.'},
+      {q:'Which failure mode is most important to script test cases for in an Ident integration?', options:['Only the happy path where every tag reads perfectly','Misreads, no-reads, and how cleanly the error is reported to the PLC','Office Wi-Fi signal strength','The colour of the reader’s housing'], correct:1, explain:'The clean read is the easy case — testers earn their keep on what happens when a read fails or arrives late.'},
+      {q:'What does OCR add to a machine vision setup?', options:['Reading printed text or codes directly off a part or packaging','A backup power supply for the camera','A way to bypass PROFINET entirely','Inventory counting only, never reading text'], correct:0, explain:'OCR turns the camera into a reader of printed characters, not just shapes.'},
+    ]
+  },
+  {
+    id:'auto', num:'04', title:'Test Automation', type:'standard', scored:true,
+    meta:'Verification layer',
+    intro:`The posting names C#, JavaScript and Python alongside WebdriverIO, Selenium and CUIT. These aren't interchangeable — each tool tends to pull in its own language, and knowing which combination you'll likely meet tells you something about the codebase you'd be joining.`,
+    specs:[
+      ['Selenium', 'The long-standing browser automation framework/library, with bindings in Java, C#, Python, JS, built on the WebDriver protocol.'],
+      ['WebdriverIO', 'A Node.js-based test automation framework, also built on WebDriver, popular for modern JavaScript-driven web UI testing.'],
+      ['CUIT (Coded UI Test)', 'A Visual Studio-based desktop/web UI automation framework — Microsoft deprecated it after VS2019, so seeing it on a job ad usually signals legacy test code still in active use.'],
+      ['C# / JS / Python', 'Each tends to map to a tool: C# to .NET/CUIT-based harnesses, JavaScript to WebdriverIO, Python to scripting and data glue around both.'],
+    ],
+    diagram:{
+      cap:'Fig. 04 — three languages, three roles in one toolchain',
+      svg:`<svg viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="IBM Plex Mono" font-size="11" text-anchor="middle">
+          <rect x="40" y="30" width="150" height="50" fill="none" stroke="#E8A33D" stroke-width="2"/>
+          <text x="115" y="60" fill="#E8A33D">C# / CUIT</text>
+          <rect x="225" y="30" width="150" height="50" fill="none" stroke="#5FA776" stroke-width="2"/>
+          <text x="300" y="60" fill="#5FA776">JS / WebdriverIO</text>
+          <rect x="410" y="30" width="150" height="50" fill="none" stroke="#8B9097" stroke-width="2"/>
+          <text x="485" y="60" fill="#8B9097">Python / glue</text>
+        </g>
+        <line x1="115" y1="80" x2="115" y2="115" stroke="#3A3D42" stroke-width="1.5"/>
+        <line x1="300" y1="80" x2="300" y2="115" stroke="#3A3D42" stroke-width="1.5"/>
+        <line x1="485" y1="80" x2="485" y2="115" stroke="#3A3D42" stroke-width="1.5"/>
+        <line x1="115" y1="115" x2="485" y2="115" stroke="#3A3D42" stroke-width="1.5"/>
+        <rect x="245" y="115" width="110" height="28" fill="none" stroke="#ECEDEE" stroke-width="1.5"/>
+        <text x="300" y="134" font-family="IBM Plex Mono" font-size="10" fill="#ECEDEE" text-anchor="middle">TFS / defect log</text>
+      </svg>`
+    },
+    quiz:[
+      {q:'What is WebdriverIO, precisely?', options:['A Microsoft desktop-only UI automation tool','A Node.js-based browser/mobile test automation framework built on the WebDriver protocol','A PLC programming language','A switch management protocol'], correct:1, explain:'WebdriverIO is JavaScript-first and runs on Node.js, built on top of the same WebDriver protocol Selenium uses.'},
+      {q:'What’s the useful nuance about CUIT for an interview conversation?', options:['It’s Microsoft’s newest, actively expanding framework','It’s a deprecated legacy Visual Studio framework, so its presence usually signals an older codebase to maintain','It tests PLC firmware exclusively','It fully replaced Selenium industry-wide'], correct:1, explain:'Knowing CUIT is legacy — and saying so calmly — reads as informed rather than dismissive.'},
+      {q:'Why might one team use C#, JavaScript, and Python together?', options:['Pure preference, no functional reason','Different tools call for different languages: C# for .NET/CUIT harnesses, JS for WebdriverIO, Python for glue scripts and data handling','Only one language ever actually executes','Languages must match the PLC firmware language'], correct:1, explain:'Each language follows its tool, not the other way round — a sign of an organically grown toolchain rather than a single clean stack.'},
+      {q:'At their core, what do Selenium and WebdriverIO both automate?', options:['Compiling PLC ladder logic','Driving a browser the way a real user would, to verify UI behaviour','Forwarding SNMP traps','Encoding RFID tags'], correct:1, explain:'Both ultimately drive a browser through the WebDriver protocol — the difference is mostly ecosystem and language, not concept.'},
+    ]
+  },
+  {
+    id:'qa', num:'05', title:'QA & ISTQB', type:'standard', scored:true,
+    meta:'Process layer',
+    intro:`This is the layer that probably already feels closest to home from auditing work — but the posting's specific vocabulary is worth pinning down: how a test plan differs from a test specification, how defects are tracked and re-verified, and the handful of ISTQB terms that come up in almost every testing interview.`,
+    specs:[
+      ['Testplan', 'Scope, approach, resources and schedule for testing — the "how we will test" document.'],
+      ['Testspezifikation / Testfall-Liste', 'The concrete breakdown of the test plan into individual test cases, usually derived from a feature list.'],
+      ['Fehlermeldung / Defect', 'A logged report of a deviation from expected behaviour, tracked through its lifecycle in a tool like TFS.'],
+      ['TFS', 'Team Foundation Server — Microsoft’s on-premises ALM tool for work-item and defect tracking, later evolved into Azure DevOps Server.'],
+      ['Nachtest', 'Re-running the originally failing test after a fix, to confirm the defect is actually resolved.'],
+      ['Test Oracle (ISTQB)', 'The source used to judge the expected result of a test — a spec, documented behaviour, or a requirement.'],
+      ['Exploratory Testing', 'Unscripted testing guided by tester knowledge, used to surface what scripted cases didn’t anticipate.'],
+    ],
+    diagram:{
+      cap:'Fig. 05 — the defect loop from report to retest',
+      svg:`<svg viewBox="0 0 600 130" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="IBM Plex Mono" font-size="10" fill="#8B9097" text-anchor="middle">
+          <rect x="20" y="40" width="110" height="44" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+          <text x="75" y="65">TEST RUN</text>
+          <rect x="180" y="40" width="110" height="44" fill="none" stroke="#E8A33D" stroke-width="2"/>
+          <text x="235" y="65" fill="#E8A33D">DEFECT (TFS)</text>
+          <rect x="340" y="40" width="110" height="44" fill="none" stroke="#8B9097" stroke-width="1.5"/>
+          <text x="395" y="65">FIX</text>
+          <rect x="500" y="40" width="80" height="44" fill="none" stroke="#5FA776" stroke-width="2"/>
+          <text x="540" y="65" fill="#5FA776">NACHTEST</text>
+        </g>
+        <line x1="130" y1="62" x2="180" y2="62" stroke="#3A3D42" stroke-width="2"/>
+        <line x1="290" y1="62" x2="340" y2="62" stroke="#3A3D42" stroke-width="2"/>
+        <line x1="450" y1="62" x2="500" y2="62" stroke="#3A3D42" stroke-width="2"/>
+        <path d="M540 84 V105 H75 V84" fill="none" stroke="#5FA776" stroke-width="1.5" stroke-dasharray="4 4"/>
+      </svg>`
+    },
+    quiz:[
+      {q:'What’s the practical difference between a "Testplan" and a "Testspezifikation"?', options:['They are interchangeable names for one document','A test plan covers scope/approach/schedule; a test specification breaks that into concrete test cases derived from features','Specifications are only written after release','A test plan is simply a spreadsheet of bugs'], correct:1, explain:'Plan = strategy and logistics. Specification = the actual test cases that implement that strategy.'},
+      {q:'In ISTQB vocabulary, what is a "test oracle"?', options:['A senior tester who signs off releases','The source used to judge a test’s expected result — a spec, prior behaviour, or a requirement','A category of PLC','A ticket in the defect tracker'], correct:1, explain:'The oracle answers "what should have happened" so you can judge whether the actual result is a pass or a defect.'},
+      {q:'What is a "Nachtest" for, exactly?', options:['Auto-closing a ticket without checking it','Re-running the originally failing test to confirm a fix actually resolved the defect','Restarting a network switch','Recertifying an ISTQB qualification'], correct:1, explain:'It closes the loop: the same test that found the bug is the one that proves it’s gone.'},
+      {q:'Why does exploratory testing still matter next to automated tests here?', options:['It replaces all automation','It lets a tester use domain knowledge to probe edge cases scripted tests never anticipated','It only applies to web UI testing','It is required only for SNMP checks'], correct:1, explain:'Scripts only check what was written down in advance; exploratory testing is where unanticipated integration quirks usually surface.'},
+    ]
+  },
+  {
+    id:'gloss', num:'06', title:'Glossary', type:'glossary', scored:false,
+    intro:'Quick reference. Type to filter.',
+    rows:[
+      ['PLC','Programmable Logic Controller — runs the control program against real I/O.'],
+      ['CP','Communication Processor — network module added to a PLC rack.'],
+      ['STEP7 / TIA Portal','Siemens engineering software for programming S7 controllers.'],
+      ['PROFINET IO','Industrial Ethernet fieldbus standard from PI, with IO-Controller / IO-Device / IO-Supervisor roles.'],
+      ['GSDML','XML device description a PROFINET device provides to the engineering tool.'],
+      ['RT / IRT','PROFINET’s real-time / isochronous real-time classes.'],
+      ['SNMP','Simple Network Management Protocol — device monitoring via manager, agent, MIB and traps.'],
+      ['MIB','Management Information Base — the structured data an SNMP agent exposes.'],
+      ['VLAN','Virtual LAN — logically separates traffic on shared switch hardware.'],
+      ['MRP','Media Redundancy Protocol — fast recovery for ring-topology industrial networks.'],
+      ['RFID','Radio Frequency Identification — tag-based identification, HF or UHF.'],
+      ['SIMATIC Ident','Siemens’ RFID and optical code reader product family.'],
+      ['OCR','Optical Character Recognition — reading printed text from an image.'],
+      ['WebdriverIO','Node.js browser/mobile automation framework on the WebDriver protocol.'],
+      ['Selenium','Cross-language browser automation framework, also on WebDriver.'],
+      ['CUIT','Coded UI Test — legacy, deprecated Visual Studio UI automation framework.'],
+      ['TFS','Team Foundation Server — Microsoft’s work-item/defect tracking ALM tool.'],
+      ['ISTQB','International Software Testing Qualifications Board — the standard tester certification body.'],
+      ['Testfall','German for "test case" — a single concrete test scenario.'],
+      ['Nachtest','German for "retest" — re-running a test after a fix.'],
+      ['Fehlermeldung','German for "defect report".'],
+    ]
+  },
+];
+
+/* ============== STATE ============== */
+let progress = {};
+let currentId = MODULES[0].id;
+const STORAGE_KEY = 'siemens-systemtester-prep-v1';
+
+async function loadProgress(){
+  try{
+    if(window.storage){
+      const res = await window.storage.get(STORAGE_KEY);
+      if(res && res.value){ progress = JSON.parse(res.value); }
+    }
+  }catch(e){ /* no saved progress yet */ }
+}
+async function saveProgress(){
+  try{
+    if(window.storage){ await window.storage.set(STORAGE_KEY, JSON.stringify(progress)); }
+  }catch(e){ /* storage unavailable, continue silently */ }
+}
+
+/* ============== RENDER: NAV ============== */
+function ledClass(id){
+  const p = progress[id];
+  if(!p) return 'none';
+  return p.status === 'complete' ? 'complete' : (p.status === 'partial' ? 'partial' : 'none');
+}
+
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.querySelectorAll('.nav-item').forEach(n=>n.remove());
+  MODULES.forEach(m=>{
+    const btn = document.createElement('button');
+    btn.className = 'nav-item' + (m.id===currentId ? ' active' : '');
+    btn.dataset.id = m.id;
+    const ledSpan = m.scored ? `<span class="led ${ledClass(m.id)}"></span>` : `<span class="led" style="background:transparent;"></span>`;
+    btn.innerHTML = `${ledSpan}<span class="num">${m.num}</span><span>${m.title}</span>`;
+    btn.addEventListener('click', ()=>selectModule(m.id));
+    nav.appendChild(btn);
+  });
+}
+
+function updateHeader(){
+  const scored = MODULES.filter(m=>m.scored);
+  const total = scored.length;
+  const complete = scored.filter(m=>progress[m.id] && progress[m.id].status==='complete').length;
+  document.getElementById('readoutText').textContent = `${complete} / ${total} SYSTEMS VERIFIED`;
+  const lamp = document.getElementById('headerLamp');
+  lamp.style.background = complete===total ? 'var(--green)' : 'var(--amber)';
+  lamp.style.boxShadow = complete===total ? '0 0 10px 2px var(--green-glow)' : '0 0 10px 2px var(--amber-glow)';
+  const segbar = document.getElementById('segbar');
+  segbar.innerHTML = '';
+  scored.forEach(m=>{
+    const seg = document.createElement('div');
+    const st = progress[m.id] ? progress[m.id].status : 'none';
+    seg.className = 'seg' + (st==='complete' ? ' on-complete' : (st==='partial' ? ' on-partial' : ''));
+    segbar.appendChild(seg);
+  });
+}
+
+/* ============== RENDER: MODULE CONTENT ============== */
+function moduleHTML(m){
+  if(m.type==='briefing') return briefingHTML(m);
+  if(m.type==='glossary') return glossaryHTML(m);
+  return standardHTML(m);
+}
+
+function standardHTML(m){
+  const specRows = m.specs.map(([t,d])=>`
+    <div class="spec-row"><div class="term">${t}</div><div class="def">${d}</div></div>
+  `).join('');
+  const quizBlocks = m.quiz.map((q,qi)=>{
+    const opts = q.options.map((opt,oi)=>`
+      <label class="option" data-qi="${qi}" data-oi="${oi}">
+        <input type="radio" name="q-${m.id}-${qi}" value="${oi}">
+        <span>${opt}</span>
+      </label>
+    `).join('');
+    return `
+      <div class="q-block" data-qi="${qi}">
+        <div class="q-text"><span class="qn">Q${qi+1}</span>${q.q}</div>
+        ${opts}
+        <div class="explain" data-qi="${qi}">${q.explain}</div>
+      </div>
+    `;
+  }).join('');
+  return `
+    <section class="module" id="mod-${m.id}" data-id="${m.id}">
+      <div class="mod-head"><span class="big-num">${m.num}</span><h2>${m.title}</h2></div>
+      <div class="mod-meta">${m.meta}</div>
+      <hr class="rule">
+      <p class="intro">${m.intro}</p>
+      <div class="spec-sheet">${specRows}</div>
+      <div class="fig">
+        ${m.diagram.svg}
+        <div class="fig-cap">${m.diagram.cap}</div>
+      </div>
+      <div class="diag">
+        <div class="diag-head"><h3>Diagnostic Check</h3></div>
+        <div class="diag-sub">Answer all four, then run the check. The indicator light updates when you do.</div>
+        ${quizBlocks}
+        <div class="result-row">
+          <button class="btn" data-action="run" data-id="${m.id}">Run Diagnostic</button>
+          <button class="btn ghost" data-action="retry" data-id="${m.id}" style="display:none;">Try Again</button>
+          <span class="result-text" id="result-${m.id}"></span>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function briefingHTML(m){
+  const rows = m.rows.map(([req,targetId,label])=>`
+    <div class="brief-row"><div class="req">${req}</div><div class="arrow">&#8594;</div><div class="mod-link" data-jump="${targetId}">${label}</div></div>
+  `).join('');
+  return `
+    <section class="module" id="mod-${m.id}" data-id="${m.id}">
+      <div class="mod-head"><span class="big-num">${m.num}</span><h2>${m.title}</h2></div>
+      <div class="mod-meta">Job posting, mapped to modules</div>
+      <hr class="rule">
+      <p class="intro">${m.intro}</p>
+      <div class="spec-sheet">${rows}</div>
+    </section>
+  `;
+}
+
+function glossaryHTML(m){
+  const rows = m.rows.map(([t,d])=>`<div class="gloss-row" data-term="${t.toLowerCase()}" data-def="${d.toLowerCase()}"><div class="term">${t}</div><div class="def">${d}</div></div>`).join('');
+  return `
+    <section class="module" id="mod-${m.id}" data-id="${m.id}">
+      <div class="mod-head"><span class="big-num">${m.num}</span><h2>${m.title}</h2></div>
+      <div class="mod-meta">Reference</div>
+      <hr class="rule">
+      <input type="text" id="glossary-search" placeholder="Filter terms, e.g. profinet, tfs, rfid...">
+      <div id="glossary-rows">${rows}</div>
+      <div class="gloss-empty" id="glossary-empty" style="display:none;">No matching term.</div>
+    </section>
+  `;
+}
+
+function renderContent(){
+  const content = document.getElementById('content');
+  content.innerHTML = MODULES.map(m=>moduleHTML(m)).join('');
+  wireModuleEvents();
+  const search = document.getElementById('glossary-search');
+  if(search) search.addEventListener('input', filterGlossary);
+}
+
+function wireModuleEvents(){
+  document.querySelectorAll('[data-action="run"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>runDiagnostic(btn.dataset.id));
+  });
+  document.querySelectorAll('[data-action="retry"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>retryModule(btn.dataset.id));
+  });
+  document.querySelectorAll('[data-jump]').forEach(el=>{
+    el.addEventListener('click', ()=>selectModule(el.dataset.jump));
+  });
+}
+
+function filterGlossary(){
+  const term = document.getElementById('glossary-search').value.trim().toLowerCase();
+  const rows = document.querySelectorAll('.gloss-row');
+  let visible = 0;
+  rows.forEach(r=>{
+    const match = !term || r.dataset.term.includes(term) || r.dataset.def.includes(term);
+    r.style.display = match ? '' : 'none';
+    if(match) visible++;
+  });
+  document.getElementById('glossary-empty').style.display = visible===0 ? 'block' : 'none';
+}
+
+/* ============== QUIZ LOGIC ============== */
+function runDiagnostic(id){
+  const module = MODULES.find(m=>m.id===id);
+  const section = document.getElementById('mod-'+id);
+  let score = 0;
+  module.quiz.forEach((q,qi)=>{
+    const checked = section.querySelector(`input[name="q-${id}-${qi}"]:checked`);
+    const selected = checked ? parseInt(checked.value,10) : -1;
+    const labels = section.querySelectorAll(`label.option[data-qi="${qi}"]`);
+    labels.forEach(lbl=>{
+      const oi = parseInt(lbl.dataset.oi,10);
+      lbl.classList.remove('is-correct','is-wrong');
+      if(oi===q.correct) lbl.classList.add('is-correct');
+      if(oi===selected && selected!==q.correct) lbl.classList.add('is-wrong');
+      lbl.querySelector('input').disabled = true;
+    });
+    section.querySelector(`.explain[data-qi="${qi}"]`).classList.add('show');
+    if(selected===q.correct) score++;
+  });
+  const total = module.quiz.length;
+  const status = (score===total) ? 'complete' : 'partial';
+  progress[id] = {status, score, total};
+  saveProgress();
+  renderNav();
+  updateHeader();
+  const resultEl = document.getElementById('result-'+id);
+  resultEl.textContent = `${score} / ${total} — ${status==='complete' ? 'VERIFIED' : 'RECHECK'}`;
+  resultEl.className = 'result-text ' + (status==='complete' ? 'pass' : 'partial');
+  section.querySelector('[data-action="run"]').style.display = 'none';
+  section.querySelector('[data-action="retry"]').style.display = 'inline-block';
+}
+
+function retryModule(id){
+  const section = document.getElementById('mod-'+id);
+  section.querySelectorAll('input[type="radio"]').forEach(inp=>{ inp.checked=false; inp.disabled=false; });
+  section.querySelectorAll('label.option').forEach(lbl=>lbl.classList.remove('is-correct','is-wrong'));
+  section.querySelectorAll('.explain').forEach(ex=>ex.classList.remove('show'));
+  document.getElementById('result-'+id).textContent = '';
+  section.querySelector('[data-action="run"]').style.display = 'inline-block';
+  section.querySelector('[data-action="retry"]').style.display = 'none';
+}
+
+/* ============== NAVIGATION ============== */
+function selectModule(id){
+  if(!MODULES.find(m=>m.id===id)) return;
+  currentId = id;
+  document.querySelectorAll('section.module').forEach(s=>s.classList.toggle('active', s.dataset.id===id));
+  renderNav();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ============== INIT ============== */
+async function init(){
+  await loadProgress();
+  renderContent();
+  renderNav();
+  selectModule(currentId);
+  updateHeader();
+}
+init();
+</script>
+</body>
+</html>
